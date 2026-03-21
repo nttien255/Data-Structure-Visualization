@@ -1,0 +1,35 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/DataStructureVisualizer.dir/src/DataStructures/BFS.cpp.obj"
+  "CMakeFiles/DataStructureVisualizer.dir/src/DataStructures/BFS.cpp.obj.d"
+  "CMakeFiles/DataStructureVisualizer.dir/src/DataStructures/MST.cpp.obj"
+  "CMakeFiles/DataStructureVisualizer.dir/src/DataStructures/MST.cpp.obj.d"
+  "CMakeFiles/DataStructureVisualizer.dir/src/DataStructures/MinHeap.cpp.obj"
+  "CMakeFiles/DataStructureVisualizer.dir/src/DataStructures/MinHeap.cpp.obj.d"
+  "CMakeFiles/DataStructureVisualizer.dir/src/DataStructures/RBTree.cpp.obj"
+  "CMakeFiles/DataStructureVisualizer.dir/src/DataStructures/RBTree.cpp.obj.d"
+  "CMakeFiles/DataStructureVisualizer.dir/src/DataStructures/SinglyLinkedList.cpp.obj"
+  "CMakeFiles/DataStructureVisualizer.dir/src/DataStructures/SinglyLinkedList.cpp.obj.d"
+  "CMakeFiles/DataStructureVisualizer.dir/src/DataStructures/Trie.cpp.obj"
+  "CMakeFiles/DataStructureVisualizer.dir/src/DataStructures/Trie.cpp.obj.d"
+  "CMakeFiles/DataStructureVisualizer.dir/src/Screens/ListScreen.cpp.obj"
+  "CMakeFiles/DataStructureVisualizer.dir/src/Screens/ListScreen.cpp.obj.d"
+  "CMakeFiles/DataStructureVisualizer.dir/src/Screens/MainMenuScreen.cpp.obj"
+  "CMakeFiles/DataStructureVisualizer.dir/src/Screens/MainMenuScreen.cpp.obj.d"
+  "CMakeFiles/DataStructureVisualizer.dir/src/UI/Button.cpp.obj"
+  "CMakeFiles/DataStructureVisualizer.dir/src/UI/Button.cpp.obj.d"
+  "CMakeFiles/DataStructureVisualizer.dir/src/UI/InputBox.cpp.obj"
+  "CMakeFiles/DataStructureVisualizer.dir/src/UI/InputBox.cpp.obj.d"
+  "CMakeFiles/DataStructureVisualizer.dir/src/UI/SystemUtils.cpp.obj"
+  "CMakeFiles/DataStructureVisualizer.dir/src/UI/SystemUtils.cpp.obj.d"
+  "CMakeFiles/DataStructureVisualizer.dir/src/main.cpp.obj"
+  "CMakeFiles/DataStructureVisualizer.dir/src/main.cpp.obj.d"
+  "DataStructureVisualizer.exe"
+  "DataStructureVisualizer.exe.manifest"
+  "DataStructureVisualizer.pdb"
+  "libDataStructureVisualizer.dll.a"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang CXX)
+  include(CMakeFiles/DataStructureVisualizer.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()
