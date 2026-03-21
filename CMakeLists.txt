@@ -5,24 +5,23 @@ project(DataStructureVisualizer VERSION 1.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# 1. TUYỆT CHIÊU: Tự động tìm tất cả các file .cpp trong thư mục src và các thư mục con
+# 1. Tự động tìm tất cả các file .cpp trong thư mục src và các thư mục con
 file(GLOB_RECURSE ALL_SOURCES "src/*.cpp")
 
-# Thêm tất cả các file source đó vào file thực thi
+# 2. Khai báo file thực thi
 add_executable(${PROJECT_NAME} ${ALL_SOURCES})
 
-# 2. Trỏ CMake tới thư mục 'include' của project
+# 3. Trỏ CMake tới thư mục 'include' của riêng project
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
-# 3. Trỏ CMake tới thư mục raylib (Tải thủ công)
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/raylib/include)
-target_link_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/raylib/lib)
+# =========================================================================
+# 4. TÍCH HỢP RAYLIB TỪ GIT SUBMODULE
+# (Yêu cầu phải chạy lệnh: git submodule add https://github.com/raysan5/raylib.git raylib)
+# =========================================================================
+add_subdirectory(raylib)
 
-# 4. Link raylib VÀ các thư viện bắt buộc của Windows
-target_link_libraries(${PROJECT_NAME} PRIVATE raylib winmm gdi32 opengl32)
-
-# Tự động copy thư mục assets vào thư mục build khi chạy
-file(COPY ${CMAKE_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR})
-
-# Tùy thuộc vào code hiện tại của bạn, hãy thêm comdlg32 vào danh sách link
+# 5. Link thư viện (raylib từ submodule và comdlg32 cho Windows File Dialog)
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib comdlg32)
+
+# 6. Tự động copy thư mục assets vào thư mục build khi chạy
+file(COPY ${CMAKE_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR})

@@ -1,3 +1,0 @@
-D:/university/CS163/Data-Structure-Visualization/build/CMakeFiles/DataStructureVisualizer.dir
-D:/university/CS163/Data-Structure-Visualization/build/CMakeFiles/edit_cache.dir
-D:/university/CS163/Data-Structure-Visualization/build/CMakeFiles/rebuild_cache.dir

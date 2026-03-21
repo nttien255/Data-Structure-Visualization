@@ -1,1 +1,0 @@
-  -L"D:/university/CS163/Data-Structure-Visualization/raylib/lib"  -lraylib -lwinmm -lgdi32 -lopengl32 -lraylib -lcomdlg32 -lwinmm -lgdi32 -lopengl32 -lcomdlg32 -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 
