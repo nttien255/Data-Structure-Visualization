@@ -2,29 +2,20 @@
 #define LIST_SCREEN_H
 
 #include "Screens/Screen.h"
+#include "Core/UILayout.h"
 #include "UI/Button.h"
 #include "UI/InputBox.h"
-#include "DataStructures/SinglyLinkedList.h" 
+#include "UI/ControlPanel.h"
+#include "DataStructures/SinglyLinkedList.h"
 
 class ListScreen : public Screen {
 private:
+    UILayout layout;
     Button homeBtn;
-    
-    InputBox inputBox;
-    Button addBtn;
-    Button delBtn; // <--- Thêm nút Delete
-    Button searchBtn;
+    ControlPanel controlPanel;
+    SinglyLinkedList list;
 
-    InputBox arrayInput; 
-    Button initArrayBtn; 
-    Button loadFileBtn; 
-    Button clearBtn;
-
-    Button modeBtn; 
-    Button prevBtn;
-    Button nextBtn;
-
-    SinglyLinkedList list; 
+    void HandleActions();
 
 public:
     ListScreen();

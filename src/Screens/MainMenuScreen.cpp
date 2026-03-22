@@ -1,27 +1,28 @@
 #include "Screens/MainMenuScreen.h"
 
 MainMenuScreen::MainMenuScreen() 
-    // Khởi tạo nút Exit ở ngay dòng Initializer List
-    : exitBtn((1600 - 300) / 2.0f, 750.0f, 300, 70, "Exit App", IconType::NONE)
+    // Tọa độ nút Exit tự động căn giữa cho màn hình 1366
+    : exitBtn((1366 - 300) / 2.0f, 620.0f, 300, 70, "Exit App", IconType::NONE)
 {
     splashTimer = 0.0f;
     isSplashDone = false;
 
     float btnW = 450;
-    float btnH = 100;
+    float btnH = 80; // Giảm chiều cao nút xuống một chút cho đỡ chật
     
-    float startX = (1600 / 2.0f) - btnW - 20.0f; 
-    float startX2 = (1600 / 2.0f) + 20.0f;       
-    float startY = 300.0f;                    
+    float startX = (1366 / 2.0f) - btnW - 20.0f; 
+    float startX2 = (1366 / 2.0f) + 20.0f;       
+    float startY = 250.0f; // Đẩy toàn bộ menu lên trên một chút                    
 
-    buttons.push_back(Button(startX, startY, btnW, btnH, "Singly Linked List", IconType::SINGLY_LIST));
-    buttons.push_back(Button(startX2, startY, btnW, btnH, "Min / Max Heap", IconType::HEAP));
+    // Đổi tên biến thành menuButtons cho khớp với file .h của bạn
+    menuButtons.push_back(Button(startX, startY, btnW, btnH, "Singly Linked List", IconType::SINGLY_LIST));
+    menuButtons.push_back(Button(startX2, startY, btnW, btnH, "Min / Max Heap", IconType::HEAP));
     
-    buttons.push_back(Button(startX, startY + 130.0f, btnW, btnH, "Red Black Tree", IconType::RBTREE));
-    buttons.push_back(Button(startX2, startY + 130.0f, btnW, btnH, "Trie (Prefix Tree)", IconType::TRIE));
+    menuButtons.push_back(Button(startX, startY + 110.0f, btnW, btnH, "Red Black Tree", IconType::RBTREE));
+    menuButtons.push_back(Button(startX2, startY + 110.0f, btnW, btnH, "Trie (Prefix Tree)", IconType::TRIE));
     
-    buttons.push_back(Button(startX, startY + 260.0f, btnW, btnH, "MST Algorithm", IconType::MST));
-    buttons.push_back(Button(startX2, startY + 260.0f, btnW, btnH, "BFS Algorithm", IconType::BFS));
+    menuButtons.push_back(Button(startX, startY + 220.0f, btnW, btnH, "MST Algorithm", IconType::MST));
+    menuButtons.push_back(Button(startX2, startY + 220.0f, btnW, btnH, "BFS Algorithm", IconType::BFS));
 }
 
 void MainMenuScreen::Update(AppState& currentState) {
@@ -31,12 +32,12 @@ void MainMenuScreen::Update(AppState& currentState) {
         return; 
     }
 
-    if (buttons[0].Update()) currentState = AppState::SINGLY_LINKED_LIST;
-    if (buttons[1].Update()) currentState = AppState::MIN_HEAP;
-    if (buttons[2].Update()) currentState = AppState::RBTREE;
-    if (buttons[3].Update()) currentState = AppState::TRIE;     
-    if (buttons[4].Update()) currentState = AppState::GRAPH_MST; 
-    if (buttons[5].Update()) currentState = AppState::GRAPH_BFS; 
+    if (menuButtons[0].Update()) currentState = AppState::SINGLY_LINKED_LIST;
+    if (menuButtons[1].Update()) currentState = AppState::MIN_HEAP;
+    if (menuButtons[2].Update()) currentState = AppState::RBTREE;
+    if (menuButtons[3].Update()) currentState = AppState::TRIE;     
+    if (menuButtons[4].Update()) currentState = AppState::GRAPH_MST; 
+    if (menuButtons[5].Update()) currentState = AppState::GRAPH_BFS; 
 
     // Bắt sự kiện bấm nút Exit
     if (exitBtn.Update()) {
@@ -66,11 +67,10 @@ void MainMenuScreen::Draw(Theme theme, Font uiFont, Font monoFont) {
 
     const char* header = "Select Data Structure";
     Vector2 hSize = MeasureTextEx(uiFont, header, 50, 1.0f);
-    DrawTextEx(uiFont, header, {(float)(screenW - hSize.x)/2, 120}, 50, 1.0f, theme.textMain);
-    DrawTextEx(uiFont, "Press [T] to toggle Dark/Light Mode", {(float)(screenW/2) - 180, 190}, 20, 1.0f, theme.textMuted);
+    DrawTextEx(uiFont, header, {(float)(screenW - hSize.x)/2, 80}, 50, 1.0f, theme.textMain);
+    DrawTextEx(uiFont, "Press [T] to toggle Dark/Light Mode", {(float)(screenW/2) - 180, 150}, 20, 1.0f, theme.textMuted);
 
-    for (auto& btn : buttons) btn.Draw(theme, uiFont);
+    for (auto& btn : menuButtons) btn.Draw(theme, uiFont);
     
-    // Vẽ nút Exit
     exitBtn.Draw(theme, uiFont);
 }

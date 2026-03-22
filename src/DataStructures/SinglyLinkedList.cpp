@@ -4,308 +4,321 @@
 SinglyLinkedList::SinglyLinkedList() {
     currentStep = 0;
     timer = 0.0f;
+    completionTimer = 0.0f;
     speedMultiplier = 1.0f;
     isStepByStep = false;
+    selectedIndex = -1;
+    
+    // Khởi tạo trạng thái gốc cho Undo
+    history.clear();
+    history.push_back(data);
+    historyIndex = 0;
+}
+
+// LƯU LẠI LỊCH SỬ SAU KHI DỮ LIỆU ĐÃ THAY ĐỔI
+void SinglyLinkedList::SaveState() {
+    if (historyIndex < (int)history.size() - 1) {
+        history.erase(history.begin() + historyIndex + 1, history.end());
+    }
+    history.push_back(data);
+    historyIndex++;
+}
+
+void SinglyLinkedList::Undo() {
+    if (historyIndex > 0) {
+        historyIndex--;
+        data = history[historyIndex];
+        steps.clear(); currentStep = 0; selectedIndex = -1; completionTimer = 0.0f;
+    }
+}
+
+void SinglyLinkedList::Redo() {
+    if (historyIndex < (int)history.size() - 1) {
+        historyIndex++;
+        data = history[historyIndex];
+        steps.clear(); currentStep = 0; selectedIndex = -1; completionTimer = 0.0f;
+    }
+}
+
+void SinglyLinkedList::CheckNodeClick() {
+    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        Vector2 mousePos = GetMousePosition();
+        bool clicked = false;
+        for (int i = 0; i < nodeRects.size(); i++) {
+            if (CheckCollisionPointRec(mousePos, nodeRects[i])) {
+                selectedIndex = i;
+                clicked = true;
+                break;
+            }
+        }
+        if (!clicked && mousePos.y > 130 && mousePos.y < GetScreenHeight() - 80) {
+            selectedIndex = -1;
+        }
+    }
+}
+
+void SinglyLinkedList::UpdateNode(int newVal) {
+    if (selectedIndex < 0 || selectedIndex >= data.size()) return;
+    steps.clear(); currentStep = 0; completionTimer = 0.0f;
+    
+    std::vector<std::string> code = {
+        "Node* curr = head;",
+        "for (int i = 0; i < index; i++)",
+        "    curr = curr->next;",
+        "curr->data = newValue;"
+    };
+
+    AnimationStep step; step.values = data; step.codeText = code;
+    
+    for(int i = 0; i <= selectedIndex; i++) {
+        step.states.assign(data.size(), NodeState::NORMAL);
+        step.states[i] = NodeState::HIGHLIGHT;
+        step.activeCodeLine = (i==0) ? 0 : 2;
+        steps.push_back(step);
+    }
+
+    // Cập nhật dữ liệu và lưu lịch sử
+    data[selectedIndex] = newVal;
+    SaveState(); 
+    
+    step.values = data; 
+    step.states[selectedIndex] = NodeState::SUCCESS;
+    step.activeCodeLine = 3;
+    steps.push_back(step);
 }
 
 void SinglyLinkedList::InitRandom(int size) {
     data.clear();
-    steps.clear();
     for (int i = 0; i < size; i++) data.push_back(GetRandomValue(10, 99));
-    
-    AnimationStep step;
-    step.values = data;
-    step.states.assign(data.size(), NodeState::NORMAL);
-    step.activeCodeLine = -1; 
-    steps.push_back(step);
-    currentStep = 0;
+    SaveState();
+    steps.clear(); currentStep = 0; selectedIndex = -1; completionTimer = 0.0f;
 }
 
 void SinglyLinkedList::InitFromArray(std::vector<int> arr) {
     data = arr;
-    steps.clear();
-    AnimationStep step;
-    step.values = data;
-    step.states.assign(data.size(), NodeState::NORMAL);
-    step.activeCodeLine = -1; 
-    steps.push_back(step);
-    currentStep = 0;
+    SaveState();
+    steps.clear(); currentStep = 0; selectedIndex = -1; completionTimer = 0.0f;
 }
 
 void SinglyLinkedList::ClearList() {
     data.clear();
-    steps.clear();
+    SaveState();
+    steps.clear(); currentStep = 0; selectedIndex = -1; completionTimer = 0.0f;
 }
 
-// ==========================================
-// TÍNH NĂNG: ADD TAIL (ĐÃ FIX LỖI ẢO GIÁC)
-// ==========================================
 void SinglyLinkedList::AddTail(int val) {
-    steps.clear();
-    currentStep = 0;
-
-    data.push_back(val); // Cập nhật thẳng vào bộ nhớ để hiện hình ngay lập tức
+    steps.clear(); currentStep = 0; selectedIndex = -1; completionTimer = 0.0f;
+    
+    data.push_back(val);
+    SaveState(); 
 
     std::vector<std::string> code = {
-        "Node* vtx = new Node(v);",
-        "if (head == null) {",
-        "    head = tail = vtx;",
-        "} else {",
-        "    tail->next = vtx;",
-        "    tail = vtx;",
-        "}"
+        "Node* newNode = new Node(v);",
+        "if (head == null) { head = tail = newNode; }",
+        "else { tail->next = newNode; tail = newNode; }"
     };
 
-    AnimationStep step;
-    step.values = data; // Chứa luôn Node mới
+    AnimationStep step; step.values = data; step.codeText = code;
     step.states.assign(data.size(), NodeState::NORMAL);
-    step.states.back() = NodeState::HIGHLIGHT; // Node mới hiện màu Cam ngay từ Step 0
-    step.codeText = code;
-
-    step.activeCodeLine = 0; 
-    steps.push_back(step);
+    step.states.back() = NodeState::HIGHLIGHT;
+    step.activeCodeLine = 0; steps.push_back(step);
 
     if (data.size() == 1) {
-        step.activeCodeLine = 2;
-        step.states.back() = NodeState::SUCCESS; // Nối xong đổi màu Xanh Lá
-        steps.push_back(step);
+        step.activeCodeLine = 1; step.states.back() = NodeState::SUCCESS; steps.push_back(step);
     } else {
-        step.activeCodeLine = 4;
-        steps.push_back(step);
-
-        step.activeCodeLine = 5;
-        step.states.back() = NodeState::SUCCESS;
-        steps.push_back(step);
+        step.activeCodeLine = 2; step.states.back() = NodeState::SUCCESS; steps.push_back(step);
     }
 }
 
-// ==========================================
-// TÍNH NĂNG: XÓA NODE (DELETE)
-// ==========================================
 void SinglyLinkedList::Delete(int target) {
-    steps.clear();
-    currentStep = 0;
+    steps.clear(); currentStep = 0; selectedIndex = -1; completionTimer = 0.0f;
 
     std::vector<std::string> code = {
         "if (head == null) return;",
-        "if (head->data == v) {",
-        "    head = head->next;",
-        "    return;",
-        "}",
+        "if (head->data == target) { head = head->next; return; }",
         "Node* curr = head;",
         "while (curr->next != null) {",
-        "    if (curr->next->data == v) {",
-        "        curr->next = curr->next->next;",
-        "        return;",
+        "    if (curr->next->data == target) {",
+        "        curr->next = curr->next->next; return;",
         "    }",
         "    curr = curr->next;",
         "}"
     };
 
-    AnimationStep step;
-    step.values = data;
+    AnimationStep step; step.values = data; step.codeText = code;
     step.states.assign(data.size(), NodeState::NORMAL);
-    step.codeText = code;
-
-    step.activeCodeLine = 0;
-    steps.push_back(step);
+    step.activeCodeLine = 0; steps.push_back(step);
     if (data.empty()) return;
 
-    step.activeCodeLine = 1;
-    step.states[0] = NodeState::HIGHLIGHT;
-    steps.push_back(step);
-
-    // Trường hợp xóa phần tử đầu tiên
     if (data[0] == target) {
-        step.activeCodeLine = 2;
-        step.states[0] = NodeState::ERROR; // Đổi màu Đỏ báo hiệu chuẩn bị xóa
-        steps.push_back(step);
-
-        data.erase(data.begin()); // Xóa thật khỏi bộ nhớ
-        step.values = data;
-        step.states.assign(data.size(), NodeState::NORMAL);
-        step.activeCodeLine = 3; 
-        steps.push_back(step);
-        return;
+        step.activeCodeLine = 1; step.states[0] = NodeState::ERROR; steps.push_back(step);
+        
+        data.erase(data.begin()); 
+        SaveState();
+        
+        step.values = data; step.states.assign(data.size(), NodeState::NORMAL);
+        steps.push_back(step); return;
     }
 
-    step.states[0] = NodeState::NORMAL;
-    step.activeCodeLine = 5; 
-    step.states[0] = NodeState::HIGHLIGHT; // Trỏ curr
-    steps.push_back(step);
+    step.activeCodeLine = 2; step.states[0] = NodeState::HIGHLIGHT; steps.push_back(step);
 
-    // Duyệt tìm phần tử
-    for (int i = 0; i < data.size() - 1; i++) {
-        step.activeCodeLine = 6;
-        step.states.assign(data.size(), NodeState::NORMAL);
-        step.states[i] = NodeState::HIGHLIGHT; // curr
-        steps.push_back(step);
+    for (size_t i = 0; i < data.size() - 1; i++) {
+        step.activeCodeLine = 3; step.states.assign(data.size(), NodeState::NORMAL);
+        step.states[i] = NodeState::HIGHLIGHT; step.states[i + 1] = NodeState::HIGHLIGHT; steps.push_back(step);
 
-        step.activeCodeLine = 7;
-        step.states[i+1] = NodeState::HIGHLIGHT; // curr->next
-        steps.push_back(step);
-
-        if (data[i+1] == target) {
-            step.activeCodeLine = 8;
-            step.states[i+1] = NodeState::ERROR; // Node bị xóa hiện màu Đỏ
-            steps.push_back(step);
-
-            data.erase(data.begin() + i + 1);
+        if (data[i + 1] == target) {
+            step.activeCodeLine = 5; step.states[i + 1] = NodeState::ERROR; steps.push_back(step);
+            
+            data.erase(data.begin() + i + 1); 
+            SaveState();
+            
             step.values = data;
-            step.states.assign(data.size(), NodeState::NORMAL);
-            step.states[i] = NodeState::SUCCESS; // Nối thành công
-            step.activeCodeLine = 9; 
-            steps.push_back(step);
-            return;
-        } else {
-            step.activeCodeLine = 11; 
-            steps.push_back(step);
+            step.states.assign(data.size(), NodeState::NORMAL); step.states[i] = NodeState::SUCCESS;
+            steps.push_back(step); return;
         }
     }
 }
 
-// ==========================================
-// TÍNH NĂNG: TÌM KIẾM
-// ==========================================
 void SinglyLinkedList::Search(int target) {
-    steps.clear();
-    currentStep = 0;
-    
+    steps.clear(); currentStep = 0; selectedIndex = -1; completionTimer = 0.0f;
+
     std::vector<std::string> code = {
         "Node* curr = head;",
         "while (curr != nullptr) {",
-        "    if (curr->data == target)",
-        "        return curr;",
+        "    if (curr->data == target) return curr;",
         "    curr = curr->next;",
         "}",
         "return null;"
     };
 
-    AnimationStep step;
-    step.values = data;
+    AnimationStep step; step.values = data; step.codeText = code;
     step.states.assign(data.size(), NodeState::NORMAL);
-    step.codeText = code;
+    
+    if (data.empty()) { step.activeCodeLine = 5; steps.push_back(step); return; }
 
-    if (data.empty()) {
-        step.activeCodeLine = 0; steps.push_back(step);
-        step.activeCodeLine = 6; steps.push_back(step);
+    bool found = false;
+    for (size_t i = 0; i < data.size(); i++) {
+        step.states.assign(data.size(), NodeState::NORMAL); step.states[i] = NodeState::HIGHLIGHT;
+        step.activeCodeLine = 2; steps.push_back(step);
+
+        if (data[i] == target) {
+            step.states[i] = NodeState::SUCCESS; steps.push_back(step); found = true; break;
+        } else {
+            step.activeCodeLine = 3; steps.push_back(step);
+        }
+    }
+    if (!found) { step.states.assign(data.size(), NodeState::NORMAL); step.activeCodeLine = 5; steps.push_back(step); }
+}
+
+void SinglyLinkedList::Update() {
+    CheckNodeClick(); 
+    
+    if (steps.empty()) {
+        completionTimer = 0.0f;
         return;
     }
 
-    bool found = false;
-    for (int i = 0; i < data.size(); i++) {
-        step.states.assign(data.size(), NodeState::NORMAL);
-        step.states[i] = NodeState::HIGHLIGHT;
-        
-        step.activeCodeLine = 2; 
-        steps.push_back(step);
-
-        if (data[i] == target) {
-            step.states[i] = NodeState::SUCCESS;
-            step.activeCodeLine = 3; 
-            steps.push_back(step);
-            found = true;
-            break;
-        } else {
-            step.activeCodeLine = 4; 
-            steps.push_back(step);
+    // NÚT THẮT 3 GIÂY: Khi chạy xong step cuối cùng
+    if (currentStep >= (int)steps.size() - 1) {
+        completionTimer += GetFrameTime();
+        if (completionTimer >= 3.0f) {
+            steps.clear();      // Xóa màu và bảng Pseudocode
+            currentStep = 0;
+            completionTimer = 0.0f;
         }
+        return;
     }
 
-    if (!found) {
-        step.states.assign(data.size(), NodeState::NORMAL);
-        step.activeCodeLine = 6; 
-        steps.push_back(step);
-    }
-}
-
-// ==========================================
-// ĐIỀU KHIỂN & VẼ
-// ==========================================
-void SinglyLinkedList::Update() {
-    if (steps.empty() || currentStep >= steps.size() - 1) return;
-
+    completionTimer = 0.0f;
     if (!isStepByStep) {
         timer += GetFrameTime() * speedMultiplier;
-        if (timer >= 1.0f) {
-            timer = 0.0f;
-            currentStep++;
-        }
+        if (timer >= 1.0f) { timer = 0.0f; currentStep++; }
     }
 }
 
-void SinglyLinkedList::StepForward() {
-    if (!steps.empty() && currentStep < steps.size() - 1) { currentStep++; timer = 0.0f; }
-}
+void SinglyLinkedList::StepForward() { if (!steps.empty() && currentStep < (int)steps.size() - 1) { currentStep++; timer = 0.0f; } }
+void SinglyLinkedList::StepBackward() { if (!steps.empty() && currentStep > 0) { currentStep--; timer = 0.0f; } }
 
-void SinglyLinkedList::StepBackward() {
-    if (!steps.empty() && currentStep > 0) { currentStep--; timer = 0.0f; }
-}
+void SinglyLinkedList::Draw(Theme theme, Font uiFont, Font monoFont, UILayout layout) {
+    std::vector<int> currentData = steps.empty() ? data : steps[currentStep].values;
+    std::vector<NodeState> currentStates = steps.empty() ? std::vector<NodeState>(data.size(), NodeState::NORMAL) : steps[currentStep].states;
+    
+    nodeRects.clear(); 
 
-void SinglyLinkedList::Draw(Theme theme, Font uiFont, Font monoFont) {
-    if (steps.empty()) return;
-    AnimationStep& step = steps[currentStep];
+    if (currentData.empty()) {
+        const char* msg = "List is empty. Add elements or initialize.";
+        DrawTextEx(uiFont, msg, { layout.screenW/2 - 150, layout.vizY + layout.vizH/2 }, 24, 1.0f, theme.textMuted);
+        return;
+    }
 
-    float nodeW = 80.0f, nodeH = 60.0f, spacing = 120.0f;
-    int n = step.values.size();
+    float nodeW = 70.0f; float nodeH = 50.0f; float spacing = 110.0f;
+    int n = currentData.size();
     float totalWidth = n * spacing;
-    float maxWidth = GetScreenWidth() - 450.0f; 
-    float scale = (totalWidth > maxWidth && totalWidth > 0) ? (maxWidth / totalWidth) : 1.0f;
-
-    float startX = 50.0f;
-    float startY = GetScreenHeight() / 2.0f - (nodeH * scale) / 2.0f;
+    
+    float startX = (layout.screenW - totalWidth) / 2 + 50.0f; 
+    if (startX < 20.0f) startX = 20.0f;
+    float startY = layout.vizY + (layout.vizH - nodeH) / 2;
 
     for (int i = 0; i < n; i++) {
-        float x = startX + i * (spacing * scale);
+        float x = startX + i * spacing;
         float y = startY;
-        
+
         Color boxColor = theme.panelBg;
         Color borderColor = theme.nodeNormal;
 
-        if (step.states[i] == NodeState::HIGHLIGHT) {
-            borderColor = theme.nodeHighlight; 
-            boxColor = GetColor(0xF59E0B30); 
-        } else if (step.states[i] == NodeState::SUCCESS) {
-            borderColor = theme.nodeSuccess;   
-            boxColor = GetColor(0x10B98130);
-        } else if (step.states[i] == NodeState::ERROR) {
-            borderColor = theme.nodeError; // Nút sắp bị xóa sẽ có viền Đỏ
-            boxColor = GetColor(0xEF444430);
+        if (i == selectedIndex) {
+            borderColor = theme.btnGradStart; 
+            boxColor = Fade(theme.btnGradStart, 0.2f);
+        } else {
+            switch (currentStates[i]) {
+                case NodeState::HIGHLIGHT: borderColor = theme.nodeHighlight; boxColor = Fade(theme.nodeHighlight, 0.15f); break;
+                case NodeState::SUCCESS: borderColor = theme.nodeSuccess; boxColor = Fade(theme.nodeSuccess, 0.15f); break;
+                case NodeState::ERROR: borderColor = theme.nodeError; boxColor = Fade(theme.nodeError, 0.15f); break;
+                default: break;
+            }
         }
 
-        Rectangle nodeRec = {x, y, nodeW * scale, nodeH * scale};
-        DrawRectangleRounded(nodeRec, 0.2f, 10, boxColor);
-        DrawRectangleRoundedLines(nodeRec, 0.2f, 10, borderColor);
+        Rectangle nodeRect = {x, y, nodeW, nodeH};
+        nodeRects.push_back(nodeRect);
 
-        const char* valText = TextFormat("%d", step.values[i]);
-        Vector2 tSize = MeasureTextEx(monoFont, valText, 28 * scale, 1.0f);
-        DrawTextEx(monoFont, valText, {x + (nodeW*scale - tSize.x)/2, y + (nodeH*scale - tSize.y)/2}, 28 * scale, 1.0f, theme.textMain);
+        DrawRectangleRounded(nodeRect, 0.2f, 8, boxColor);
+        DrawRectangleRoundedLines(nodeRect, 0.2f, 8, borderColor);
+        
+        if (i == selectedIndex) DrawRectangleRoundedLines(nodeRect, 0.2f, 8, theme.textHighlighted);
+
+        const char* valText = TextFormat("%d", currentData[i]);
+        Vector2 tSize = MeasureTextEx(monoFont, valText, 24, 1.0f);
+        DrawTextEx(monoFont, valText, {x + (nodeW - tSize.x) / 2, y + (nodeH - tSize.y) / 2}, 24, 1.0f, theme.textMain);
 
         if (i < n - 1) {
-            float nextX = startX + (i + 1) * (spacing * scale);
-            DrawLineEx({x + nodeW * scale, y + (nodeH*scale)/2}, {nextX, y + (nodeH*scale)/2}, 3.0f * scale, theme.edgeNormal);
-            DrawCircle(nextX, y + (nodeH*scale)/2, 4.0f * scale, theme.edgeNormal);
+            float nextX = startX + (i + 1) * spacing;
+            DrawLineEx({x + nodeW, y + nodeH/2}, {nextX - 5, y + nodeH/2}, 2.0f, theme.edgeNormal);
+            DrawTriangle({nextX, y + nodeH/2}, {nextX - 8, y + nodeH/2 - 5}, {nextX - 8, y + nodeH/2 + 5}, theme.edgeNormal);
         }
     }
 
-    if (!step.codeText.empty()) {
-        float panelW = 350.0f;
-        float panelH = step.codeText.size() * 35.0f + 40.0f;
-        float panelX = GetScreenWidth() - panelW - 30.0f;
-        float panelY = GetScreenHeight() / 2.0f - panelH / 2.0f;
+    if (!steps.empty() && !steps[currentStep].codeText.empty()) {
+        auto& step = steps[currentStep];
+        float panelW = 340.0f;
+        float lineH = 28.0f;
+        float panelH = step.codeText.size() * lineH + 40.0f;
+        
+        float panelX = layout.screenW - panelW - 20.0f; 
+        float panelY = layout.vizY + 20.0f;
 
-        Rectangle codeRec = {panelX, panelY, panelW, panelH};
-        DrawRectangleRounded(codeRec, 0.1f, 10, theme.panelBg);
-        DrawRectangleRoundedLines(codeRec, 0.1f, 10, theme.panelBorder);
+        Rectangle codeRect = {panelX, panelY, panelW, panelH};
+        DrawRectangleRounded(codeRect, 0.05f, 8, theme.panelBg);
+        DrawRectangleRoundedLines(codeRect, 0.05f, 8, theme.panelBorder);
+        DrawTextEx(uiFont, "Pseudocode", {panelX + 15, panelY + 10}, 18, 1.0f, theme.textMuted);
 
-        for (int i = 0; i < step.codeText.size(); i++) {
-            float lineY = panelY + 20.0f + i * 35.0f;
-            if (i == step.activeCodeLine) {
-                DrawRectangle(panelX + 2, lineY - 2, panelW - 4, 35, theme.btnHoverBase);
-                DrawRectangle(panelX + 2, lineY - 2, 4, 35, theme.nodeHighlight); 
+        for (size_t i = 0; i < step.codeText.size(); i++) {
+            float lineY = panelY + 35.0f + i * lineH;
+            if ((int)i == step.activeCodeLine) {
+                DrawRectangle(panelX + 5, lineY, panelW - 10, lineH, Fade(theme.nodeHighlight, 0.2f));
+                DrawRectangle(panelX + 5, lineY, 3, lineH, theme.nodeHighlight);
             }
-            Color cColor = (i == step.activeCodeLine) ? theme.textMain : theme.textMuted;
-            DrawTextEx(monoFont, step.codeText[i].c_str(), {panelX + 20.0f, lineY + 5.0f}, 22, 1.0f, cColor);
+            Color textCol = ((int)i == step.activeCodeLine) ? theme.textMain : theme.textMuted;
+            DrawTextEx(monoFont, step.codeText[i].c_str(), {panelX + 15, lineY + 4}, 16, 1.0f, textCol);
         }
     }
 }

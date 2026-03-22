@@ -9,9 +9,8 @@ class MainMenuScreen : public Screen {
 private:
     float splashTimer;
     bool isSplashDone;
-    
-    std::vector<Button> buttons; 
-    Button exitBtn; // <--- Khai báo thêm nút Exit
+    std::vector<Button> menuButtons;
+    Button exitBtn;
 
 public:
     MainMenuScreen();
