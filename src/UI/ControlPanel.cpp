@@ -114,9 +114,10 @@ void ControlPanel::Draw(Theme theme, Font uiFont, Font monoFont) {
 }
 
 void ControlPanel::DrawSpeedSlider(Theme theme, Font monoFont, float x, float y) {
-    DrawTextEx(monoFont, "Speed:", {x - 80, y - 10}, 20, 1.0f, theme.textMuted);
-    DrawTextEx(monoFont, "0.5x", {x - 40, y - 10}, 16, 1.0f, theme.textMuted);
-    DrawTextEx(monoFont, "5.0x", {x + 215, y - 10}, 16, 1.0f, theme.textMuted);
+    // Kéo chữ "Speed:" lùi sang trái 120px để không đè vào chữ "0.5x"
+    DrawTextEx(monoFont, "Speed:", {x - 120, y - 10}, 20, 1.0f, theme.textMuted);
+    DrawTextEx(monoFont, "0.5x", {x - 40, y - 8}, 16, 1.0f, theme.textMuted);
+    DrawTextEx(monoFont, "5.0x", {x + 215, y - 8}, 16, 1.0f, theme.textMuted);
     
     DrawRectangleRounded({x, y, 200, 6}, 1.0f, 10, theme.panelBorder);
     float fillWidth = ((speedMultiplier - 0.5f) / 4.5f) * 200.0f;

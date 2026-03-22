@@ -50,6 +50,15 @@ void ListScreen::HandleActions() {
         list.AddTail(GetRandomValue(10, 99));
     }
     
+    // ==========================================================
+    // SỬA LỖI Ở ĐÂY: Lắng nghe sự kiện Next / Prev trong chế độ Step
+    // Hỗ trợ cả click chuột lẫn phím Mũi tên Trái / Phải
+    // ==========================================================
+    if (controlPanel.IsStepMode()) {
+        if (controlPanel.IsPrevClicked() || IsKeyPressed(KEY_LEFT)) list.StepBackward();
+        if (controlPanel.IsNextClicked() || IsKeyPressed(KEY_RIGHT)) list.StepForward();
+    }
+    
     if (controlPanel.IsUndoClicked()) list.Undo();
     if (controlPanel.IsRedoClicked()) list.Redo();
 

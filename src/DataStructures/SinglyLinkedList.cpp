@@ -9,13 +9,15 @@ SinglyLinkedList::SinglyLinkedList() {
     isStepByStep = false;
     selectedIndex = -1;
     
-    // Khởi tạo trạng thái gốc cho Undo
+    // Khởi tạo trạng thái gốc cho Undo/Redo
     history.clear();
     history.push_back(data);
     historyIndex = 0;
 }
 
-// LƯU LẠI LỊCH SỬ SAU KHI DỮ LIỆU ĐÃ THAY ĐỔI
+// =======================================================
+// LỊCH SỬ & TƯƠNG TÁC (UNDO, REDO, CLICK)
+// =======================================================
 void SinglyLinkedList::SaveState() {
     if (historyIndex < (int)history.size() - 1) {
         history.erase(history.begin() + historyIndex + 1, history.end());
@@ -51,12 +53,16 @@ void SinglyLinkedList::CheckNodeClick() {
                 break;
             }
         }
+        // Click ra ngoài vùng vẽ thì bỏ chọn
         if (!clicked && mousePos.y > 130 && mousePos.y < GetScreenHeight() - 80) {
             selectedIndex = -1;
         }
     }
 }
 
+// =======================================================
+// CÁC THUẬT TOÁN (OPERATIONS)
+// =======================================================
 void SinglyLinkedList::UpdateNode(int newVal) {
     if (selectedIndex < 0 || selectedIndex >= data.size()) return;
     steps.clear(); currentStep = 0; completionTimer = 0.0f;
@@ -77,9 +83,8 @@ void SinglyLinkedList::UpdateNode(int newVal) {
         steps.push_back(step);
     }
 
-    // Cập nhật dữ liệu và lưu lịch sử
     data[selectedIndex] = newVal;
-    SaveState(); 
+    SaveState(); // Lưu trạng thái sau khi đã cập nhật
     
     step.values = data; 
     step.states[selectedIndex] = NodeState::SUCCESS;
@@ -108,7 +113,6 @@ void SinglyLinkedList::ClearList() {
 
 void SinglyLinkedList::AddTail(int val) {
     steps.clear(); currentStep = 0; selectedIndex = -1; completionTimer = 0.0f;
-    
     data.push_back(val);
     SaveState(); 
 
@@ -152,10 +156,8 @@ void SinglyLinkedList::Delete(int target) {
 
     if (data[0] == target) {
         step.activeCodeLine = 1; step.states[0] = NodeState::ERROR; steps.push_back(step);
-        
         data.erase(data.begin()); 
         SaveState();
-        
         step.values = data; step.states.assign(data.size(), NodeState::NORMAL);
         steps.push_back(step); return;
     }
@@ -168,10 +170,8 @@ void SinglyLinkedList::Delete(int target) {
 
         if (data[i + 1] == target) {
             step.activeCodeLine = 5; step.states[i + 1] = NodeState::ERROR; steps.push_back(step);
-            
             data.erase(data.begin() + i + 1); 
             SaveState();
-            
             step.values = data;
             step.states.assign(data.size(), NodeState::NORMAL); step.states[i] = NodeState::SUCCESS;
             steps.push_back(step); return;
@@ -210,6 +210,9 @@ void SinglyLinkedList::Search(int target) {
     if (!found) { step.states.assign(data.size(), NodeState::NORMAL); step.activeCodeLine = 5; steps.push_back(step); }
 }
 
+// =======================================================
+// VÒNG LẶP & ĐIỀU KHIỂN ANIMATION
+// =======================================================
 void SinglyLinkedList::Update() {
     CheckNodeClick(); 
     
@@ -218,11 +221,11 @@ void SinglyLinkedList::Update() {
         return;
     }
 
-    // NÚT THẮT 3 GIÂY: Khi chạy xong step cuối cùng
+    // Đếm 3 giây sau khi chạy xong bước cuối
     if (currentStep >= (int)steps.size() - 1) {
         completionTimer += GetFrameTime();
         if (completionTimer >= 3.0f) {
-            steps.clear();      // Xóa màu và bảng Pseudocode
+            steps.clear();     
             currentStep = 0;
             completionTimer = 0.0f;
         }
@@ -239,6 +242,9 @@ void SinglyLinkedList::Update() {
 void SinglyLinkedList::StepForward() { if (!steps.empty() && currentStep < (int)steps.size() - 1) { currentStep++; timer = 0.0f; } }
 void SinglyLinkedList::StepBackward() { if (!steps.empty() && currentStep > 0) { currentStep--; timer = 0.0f; } }
 
+// =======================================================
+// VẼ GIAO DIỆN MÀN HÌNH (DRAW)
+// =======================================================
 void SinglyLinkedList::Draw(Theme theme, Font uiFont, Font monoFont, UILayout layout) {
     std::vector<int> currentData = steps.empty() ? data : steps[currentStep].values;
     std::vector<NodeState> currentStates = steps.empty() ? std::vector<NodeState>(data.size(), NodeState::NORMAL) : steps[currentStep].states;
@@ -251,14 +257,27 @@ void SinglyLinkedList::Draw(Theme theme, Font uiFont, Font monoFont, UILayout la
         return;
     }
 
-    float nodeW = 70.0f; float nodeH = 50.0f; float spacing = 110.0f;
+    // 1. TÍNH TOÁN SCALE ĐỘNG (DYNAMIC SCALING)
+    float baseNodeW = 70.0f; 
+    float baseNodeH = 50.0f; 
+    float baseSpacing = 110.0f;
     int n = currentData.size();
+    
+    float totalBaseWidth = n * baseSpacing;
+    float availableWidth = layout.screenW - 100.0f; 
+    
+    float scale = 1.0f;
+    if (totalBaseWidth > availableWidth) scale = availableWidth / totalBaseWidth;
+    
+    float nodeW = baseNodeW * scale;
+    float nodeH = baseNodeH * scale;
+    float spacing = baseSpacing * scale;
     float totalWidth = n * spacing;
     
-    float startX = (layout.screenW - totalWidth) / 2 + 50.0f; 
-    if (startX < 20.0f) startX = 20.0f;
+    float startX = (layout.screenW - totalWidth) / 2 + (spacing - nodeW) / 2; 
     float startY = layout.vizY + (layout.vizH - nodeH) / 2;
 
+    // 2. VẼ DANH SÁCH LIÊN KẾT ĐƠN
     for (int i = 0; i < n; i++) {
         float x = startX + i * spacing;
         float y = startY;
@@ -287,38 +306,58 @@ void SinglyLinkedList::Draw(Theme theme, Font uiFont, Font monoFont, UILayout la
         if (i == selectedIndex) DrawRectangleRoundedLines(nodeRect, 0.2f, 8, theme.textHighlighted);
 
         const char* valText = TextFormat("%d", currentData[i]);
-        Vector2 tSize = MeasureTextEx(monoFont, valText, 24, 1.0f);
-        DrawTextEx(monoFont, valText, {x + (nodeW - tSize.x) / 2, y + (nodeH - tSize.y) / 2}, 24, 1.0f, theme.textMain);
+        float fontSize = 24 * scale;
+        if (fontSize < 10) fontSize = 10; 
+        
+        Vector2 tSize = MeasureTextEx(monoFont, valText, fontSize, 1.0f);
+        DrawTextEx(monoFont, valText, {x + (nodeW - tSize.x) / 2, y + (nodeH - tSize.y) / 2}, fontSize, 1.0f, theme.textMain);
 
+        // Vẽ mũi tên
         if (i < n - 1) {
             float nextX = startX + (i + 1) * spacing;
-            DrawLineEx({x + nodeW, y + nodeH/2}, {nextX - 5, y + nodeH/2}, 2.0f, theme.edgeNormal);
-            DrawTriangle({nextX, y + nodeH/2}, {nextX - 8, y + nodeH/2 - 5}, {nextX - 8, y + nodeH/2 + 5}, theme.edgeNormal);
+            float arrowY = y + nodeH/2;
+            DrawLineEx({x + nodeW, arrowY}, {nextX - 5 * scale, arrowY}, 2.0f * scale, theme.edgeNormal);
+            DrawTriangle({nextX, arrowY}, {nextX - 8 * scale, arrowY - 5 * scale}, {nextX - 8 * scale, arrowY + 5 * scale}, theme.edgeNormal);
         }
     }
 
+    // 3. VẼ BẢNG PSEUDOCODE (SCROLL MƯỢT MÀ BẰNG SCISSOR MODE)
     if (!steps.empty() && !steps[currentStep].codeText.empty()) {
         auto& step = steps[currentStep];
         float panelW = 340.0f;
         float lineH = 28.0f;
-        float panelH = step.codeText.size() * lineH + 40.0f;
+        int maxVisibleLines = 3; 
+        float panelH = (maxVisibleLines * lineH) + 40.0f; 
         
         float panelX = layout.screenW - panelW - 20.0f; 
         float panelY = layout.vizY + 20.0f;
 
         Rectangle codeRect = {panelX, panelY, panelW, panelH};
         DrawRectangleRounded(codeRect, 0.05f, 8, theme.panelBg);
-        DrawRectangleRoundedLines(codeRect, 0.05f, 8, theme.panelBorder);
+        
         DrawTextEx(uiFont, "Pseudocode", {panelX + 15, panelY + 10}, 18, 1.0f, theme.textMuted);
 
-        for (size_t i = 0; i < step.codeText.size(); i++) {
-            float lineY = panelY + 35.0f + i * lineH;
-            if ((int)i == step.activeCodeLine) {
-                DrawRectangle(panelX + 5, lineY, panelW - 10, lineH, Fade(theme.nodeHighlight, 0.2f));
-                DrawRectangle(panelX + 5, lineY, 3, lineH, theme.nodeHighlight);
-            }
-            Color textCol = ((int)i == step.activeCodeLine) ? theme.textMain : theme.textMuted;
-            DrawTextEx(monoFont, step.codeText[i].c_str(), {panelX + 15, lineY + 4}, 16, 1.0f, textCol);
+        float scrollOffset = 0.0f;
+        if (step.activeCodeLine > 1) {
+            scrollOffset = (step.activeCodeLine - 1) * lineH;
         }
+
+        BeginScissorMode((int)panelX, (int)(panelY + 35), (int)panelW, (int)(panelH - 35));
+
+        for (size_t i = 0; i < step.codeText.size(); i++) {
+            float lineY = panelY + 35.0f + i * lineH - scrollOffset;
+            
+            if (lineY > panelY - lineH && lineY < panelY + panelH) {
+                if ((int)i == step.activeCodeLine) {
+                    DrawRectangle(panelX + 5, lineY, panelW - 10, lineH, Fade(theme.nodeHighlight, 0.2f));
+                    DrawRectangle(panelX + 5, lineY, 3, lineH, theme.nodeHighlight);
+                }
+                Color textCol = ((int)i == step.activeCodeLine) ? theme.textMain : theme.textMuted;
+                DrawTextEx(monoFont, step.codeText[i].c_str(), {panelX + 15, lineY + 4}, 16, 1.0f, textCol);
+            }
+        }
+        EndScissorMode(); 
+
+        DrawRectangleRoundedLines(codeRect, 0.05f, 8, theme.panelBorder);
     }
 }
