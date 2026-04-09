@@ -1,6 +1,11 @@
 #include "UI/Button.h"
 #include <cmath>
 
+void Button::SetPosition(float newX, float newY) {
+    bounds.x = newX;
+    bounds.y = newY;
+}
+
 static Color LerpColor(Color c1, Color c2, float t) {
     return {
         (unsigned char)(c1.r + (c2.r - c1.r) * t),
@@ -106,29 +111,50 @@ void Button::Draw(Theme theme, Font font) {
     );
     DrawRectangleRoundedLines(renderBounds, 0.2f, 8, borderColor);
 
-    // Icon
-    float iconSize = bounds.height * 0.4f;
-    float iconX = renderBounds.x + 15;
+    // Icon (Giữ nguyên kích thước to)
+    float iconSize = bounds.height * 0.5f; 
+    float iconX = renderBounds.x + 25; 
     float iconY = renderBounds.y + (renderBounds.height - iconSize) / 2;
     
     if (iconType != IconType::NONE) {
         DrawIcon(theme, iconX, iconY, iconSize);
     }
 
-    // Text
-    float fontSize = bounds.height * 0.45f;
-    if (fontSize > 28) fontSize = 28;
+    // ==========================================
+    // THUẬT TOÁN TEXT AUTO-SHRINK (CHỐNG TRÀN CHỮ)
+    // ==========================================
+    float fontSize = bounds.height * 0.40f; 
+    if (fontSize > 45) fontSize = 45; 
     if (fontSize < 14) fontSize = 14;
 
     Vector2 textSize = MeasureTextEx(font, text.c_str(), fontSize, 1.0f);
-    float textX, textY;
-
+    
+    // 1. Tính toán khoảng trống tối đa cho phép chữ hiển thị
+    float availableWidth;
+    float startTextX;
+    
     if (iconType != IconType::NONE) {
-        textX = iconX + iconSize + 10;
+        startTextX = iconX + iconSize + 20; // Chữ bắt đầu sau icon
+        availableWidth = bounds.width - (startTextX - bounds.x) - 20; // Trừ hao 20px lề phải
     } else {
+        availableWidth = bounds.width - 40; // Trừ hao 20px lề trái, 20px lề phải
+    }
+
+    // 2. Vòng lặp bóp nhỏ chữ nếu bị tràn ngang
+    while (textSize.x > availableWidth && fontSize > 12) {
+        fontSize -= 1.0f; // Giảm dần từng size một
+        textSize = MeasureTextEx(font, text.c_str(), fontSize, 1.0f);
+    }
+
+    // 3. Tính toán lại tọa độ vẽ sau khi đã có fontSize chuẩn
+    float textX;
+    if (iconType != IconType::NONE) {
+        textX = startTextX;
+    } else {
+        // Nếu không có icon thì căn giữa
         textX = renderBounds.x + (renderBounds.width - textSize.x) / 2;
     }
-    textY = renderBounds.y + (renderBounds.height - textSize.y) / 2;
+    float textY = renderBounds.y + (renderBounds.height - textSize.y) / 2;
 
     Color textColor = isEnabled ? WHITE : theme.textMuted;
     DrawTextEx(font, text.c_str(), {textX, textY}, fontSize, 1.0f, textColor);

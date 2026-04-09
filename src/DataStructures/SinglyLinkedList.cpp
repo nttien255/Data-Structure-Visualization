@@ -54,7 +54,7 @@ void SinglyLinkedList::CheckNodeClick() {
             }
         }
         // Click ra ngoài vùng vẽ thì bỏ chọn
-        if (!clicked && mousePos.y > 130 && mousePos.y < GetScreenHeight() - 80) {
+        if (!clicked && mousePos.y > 180 && mousePos.y < GetScreenHeight() - 100) {
             selectedIndex = -1;
         }
     }
@@ -84,7 +84,7 @@ void SinglyLinkedList::UpdateNode(int newVal) {
     }
 
     data[selectedIndex] = newVal;
-    SaveState(); // Lưu trạng thái sau khi đã cập nhật
+    SaveState(); 
     
     step.values = data; 
     step.states[selectedIndex] = NodeState::SUCCESS;
@@ -221,7 +221,6 @@ void SinglyLinkedList::Update() {
         return;
     }
 
-    // Đếm 3 giây sau khi chạy xong bước cuối
     if (currentStep >= (int)steps.size() - 1) {
         completionTimer += GetFrameTime();
         if (completionTimer >= 3.0f) {
@@ -253,111 +252,136 @@ void SinglyLinkedList::Draw(Theme theme, Font uiFont, Font monoFont, UILayout la
 
     if (currentData.empty()) {
         const char* msg = "List is empty. Add elements or initialize.";
-        DrawTextEx(uiFont, msg, { layout.screenW/2 - 150, layout.vizY + layout.vizH/2 }, 24, 1.0f, theme.textMuted);
-        return;
-    }
+        DrawTextEx(uiFont, msg, { layout.screenW/2 - 200, layout.screenH/2 }, 24, 1.0f, theme.textMuted);
+    } else {
+        // 1. TÍNH TOÁN SCALE ĐỘNG (DYNAMIC SCALING)
+        float baseNodeW = 70.0f; 
+        float baseNodeH = 50.0f; 
+        float baseSpacing = 110.0f;
+        int n = currentData.size();
+        
+        float totalBaseWidth = n * baseSpacing;
+        float availableWidth = layout.screenW - 100.0f; 
+        
+        float scale = 1.0f;
+        if (totalBaseWidth > availableWidth) scale = availableWidth / totalBaseWidth;
+        
+        float nodeW = baseNodeW * scale;
+        float nodeH = baseNodeH * scale;
+        float spacing = baseSpacing * scale;
+        float totalWidth = n * spacing;
+        
+        float startX = (layout.screenW - totalWidth) / 2 + (spacing - nodeW) / 2; 
+        float startY = layout.screenH / 2 - nodeH / 2;
 
-    // 1. TÍNH TOÁN SCALE ĐỘNG (DYNAMIC SCALING)
-    float baseNodeW = 70.0f; 
-    float baseNodeH = 50.0f; 
-    float baseSpacing = 110.0f;
-    int n = currentData.size();
-    
-    float totalBaseWidth = n * baseSpacing;
-    float availableWidth = layout.screenW - 100.0f; 
-    
-    float scale = 1.0f;
-    if (totalBaseWidth > availableWidth) scale = availableWidth / totalBaseWidth;
-    
-    float nodeW = baseNodeW * scale;
-    float nodeH = baseNodeH * scale;
-    float spacing = baseSpacing * scale;
-    float totalWidth = n * spacing;
-    
-    float startX = (layout.screenW - totalWidth) / 2 + (spacing - nodeW) / 2; 
-    float startY = layout.vizY + (layout.vizH - nodeH) / 2;
+        // 2. VẼ DANH SÁCH LIÊN KẾT ĐƠN
+        for (int i = 0; i < n; i++) {
+            float x = startX + i * spacing;
+            float y = startY;
 
-    // 2. VẼ DANH SÁCH LIÊN KẾT ĐƠN
-    for (int i = 0; i < n; i++) {
-        float x = startX + i * spacing;
-        float y = startY;
+            Color boxColor = theme.panelBg;
+            Color borderColor = theme.nodeNormal;
 
-        Color boxColor = theme.panelBg;
-        Color borderColor = theme.nodeNormal;
+            if (i == selectedIndex) {
+                borderColor = theme.btnGradStart; 
+                boxColor = Fade(theme.btnGradStart, 0.2f);
+            } else {
+                switch (currentStates[i]) {
+                    case NodeState::HIGHLIGHT: borderColor = theme.nodeHighlight; boxColor = Fade(theme.nodeHighlight, 0.15f); break;
+                    case NodeState::SUCCESS: borderColor = theme.nodeSuccess; boxColor = Fade(theme.nodeSuccess, 0.15f); break;
+                    case NodeState::ERROR: borderColor = theme.nodeError; boxColor = Fade(theme.nodeError, 0.15f); break;
+                    default: break;
+                }
+            }
 
-        if (i == selectedIndex) {
-            borderColor = theme.btnGradStart; 
-            boxColor = Fade(theme.btnGradStart, 0.2f);
-        } else {
-            switch (currentStates[i]) {
-                case NodeState::HIGHLIGHT: borderColor = theme.nodeHighlight; boxColor = Fade(theme.nodeHighlight, 0.15f); break;
-                case NodeState::SUCCESS: borderColor = theme.nodeSuccess; boxColor = Fade(theme.nodeSuccess, 0.15f); break;
-                case NodeState::ERROR: borderColor = theme.nodeError; boxColor = Fade(theme.nodeError, 0.15f); break;
-                default: break;
+            Rectangle nodeRect = {x, y, nodeW, nodeH};
+            nodeRects.push_back(nodeRect);
+
+            DrawRectangleRounded(nodeRect, 0.2f, 8, boxColor);
+            DrawRectangleRoundedLines(nodeRect, 0.2f, 8, borderColor);
+            
+            if (i == selectedIndex) DrawRectangleRoundedLines(nodeRect, 0.2f, 8, theme.textHighlighted);
+
+            const char* valText = TextFormat("%d", currentData[i]);
+            float fontSize = 24 * scale;
+            if (fontSize < 10) fontSize = 10; 
+            
+            Vector2 tSize = MeasureTextEx(monoFont, valText, fontSize, 1.0f);
+            DrawTextEx(monoFont, valText, {x + (nodeW - tSize.x) / 2, y + (nodeH - tSize.y) / 2}, fontSize, 1.0f, theme.textMain);
+
+            // Vẽ mũi tên
+            if (i < n - 1) {
+                float nextX = startX + (i + 1) * spacing;
+                float arrowY = y + nodeH/2;
+                DrawLineEx({x + nodeW, arrowY}, {nextX - 5 * scale, arrowY}, 2.0f * scale, theme.edgeNormal);
+                DrawTriangle({nextX, arrowY}, {nextX - 8 * scale, arrowY - 5 * scale}, {nextX - 8 * scale, arrowY + 5 * scale}, theme.edgeNormal);
             }
         }
-
-        Rectangle nodeRect = {x, y, nodeW, nodeH};
-        nodeRects.push_back(nodeRect);
-
-        DrawRectangleRounded(nodeRect, 0.2f, 8, boxColor);
-        DrawRectangleRoundedLines(nodeRect, 0.2f, 8, borderColor);
-        
-        if (i == selectedIndex) DrawRectangleRoundedLines(nodeRect, 0.2f, 8, theme.textHighlighted);
-
-        const char* valText = TextFormat("%d", currentData[i]);
-        float fontSize = 24 * scale;
-        if (fontSize < 10) fontSize = 10; 
-        
-        Vector2 tSize = MeasureTextEx(monoFont, valText, fontSize, 1.0f);
-        DrawTextEx(monoFont, valText, {x + (nodeW - tSize.x) / 2, y + (nodeH - tSize.y) / 2}, fontSize, 1.0f, theme.textMain);
-
-        // Vẽ mũi tên
-        if (i < n - 1) {
-            float nextX = startX + (i + 1) * spacing;
-            float arrowY = y + nodeH/2;
-            DrawLineEx({x + nodeW, arrowY}, {nextX - 5 * scale, arrowY}, 2.0f * scale, theme.edgeNormal);
-            DrawTriangle({nextX, arrowY}, {nextX - 8 * scale, arrowY - 5 * scale}, {nextX - 8 * scale, arrowY + 5 * scale}, theme.edgeNormal);
-        }
     }
 
-    // 3. VẼ BẢNG PSEUDOCODE (SCROLL MƯỢT MÀ BẰNG SCISSOR MODE)
+    // 3. VẼ BẢNG PSEUDOCODE (Góc trên phải, Cuộn Ngang như Trie)
     if (!steps.empty() && !steps[currentStep].codeText.empty()) {
         auto& step = steps[currentStep];
-        float panelW = 340.0f;
-        float lineH = 28.0f;
-        int maxVisibleLines = 3; 
-        float panelH = (maxVisibleLines * lineH) + 40.0f; 
-        
-        float panelX = layout.screenW - panelW - 20.0f; 
-        float panelY = layout.vizY + 20.0f;
+        float panelW = 460.0f; 
+        float panelH = step.codeText.size() * 35.0f + 70.0f; 
+        float panelX = layout.screenW - panelW - 30.0f; 
+        float panelY = 30.0f; // Ngang hàng với các nút bấm ở trên cùng
 
-        Rectangle codeRect = {panelX, panelY, panelW, panelH};
-        DrawRectangleRounded(codeRect, 0.05f, 8, theme.panelBg);
-        
-        DrawTextEx(uiFont, "Pseudocode", {panelX + 15, panelY + 10}, 18, 1.0f, theme.textMuted);
+        Rectangle codeRec = {panelX, panelY, panelW, panelH};
+        DrawRectangleRounded(codeRec, 0.1f, 10, theme.panelBg);
+        DrawRectangleRoundedLines(codeRec, 0.1f, 10, theme.panelBorder);
 
-        float scrollOffset = 0.0f;
-        if (step.activeCodeLine > 1) {
-            scrollOffset = (step.activeCodeLine - 1) * lineH;
+        static float listCodeScrollX = 0.0f;
+        float maxTextWidth = 0.0f;
+        for (const auto& line : step.codeText) {
+            float w = MeasureTextEx(monoFont, line.c_str(), 20, 1.0f).x;
+            if (w > maxTextWidth) maxTextWidth = w;
+        }
+        
+        float maxScroll = maxTextWidth - panelW + 60.0f;
+        if (maxScroll < 0) maxScroll = 0;
+
+        if (CheckCollisionPointRec(GetMousePosition(), codeRec)) {
+            listCodeScrollX -= GetMouseWheelMove() * 30.0f;
         }
 
-        BeginScissorMode((int)panelX, (int)(panelY + 35), (int)panelW, (int)(panelH - 35));
-
-        for (size_t i = 0; i < step.codeText.size(); i++) {
-            float lineY = panelY + 35.0f + i * lineH - scrollOffset;
+        if (maxScroll > 0) {
+            Rectangle leftBtn = {panelX + panelW - 80, panelY + panelH - 35, 30, 25};
+            Rectangle rightBtn = {panelX + panelW - 40, panelY + panelH - 35, 30, 25};
             
-            if (lineY > panelY - lineH && lineY < panelY + panelH) {
-                if ((int)i == step.activeCodeLine) {
-                    DrawRectangle(panelX + 5, lineY, panelW - 10, lineH, Fade(theme.nodeHighlight, 0.2f));
-                    DrawRectangle(panelX + 5, lineY, 3, lineH, theme.nodeHighlight);
-                }
-                Color textCol = ((int)i == step.activeCodeLine) ? theme.textMain : theme.textMuted;
-                DrawTextEx(monoFont, step.codeText[i].c_str(), {panelX + 15, lineY + 4}, 16, 1.0f, textCol);
-            }
-        }
-        EndScissorMode(); 
+            if (CheckCollisionPointRec(GetMousePosition(), leftBtn) && IsMouseButtonDown(MOUSE_LEFT_BUTTON)) listCodeScrollX -= 10.0f;
+            if (CheckCollisionPointRec(GetMousePosition(), rightBtn) && IsMouseButtonDown(MOUSE_LEFT_BUTTON)) listCodeScrollX += 10.0f;
+            
+            if (listCodeScrollX < 0) listCodeScrollX = 0;
+            if (listCodeScrollX > maxScroll) listCodeScrollX = maxScroll;
 
-        DrawRectangleRoundedLines(codeRect, 0.05f, 8, theme.panelBorder);
+            DrawRectangleRounded(leftBtn, 0.2f, 5, theme.btnGradStart);
+            DrawTextEx(monoFont, "<", {leftBtn.x + 8, leftBtn.y + 2}, 20, 1.0f, theme.textMain);
+
+            DrawRectangleRounded(rightBtn, 0.2f, 5, theme.btnGradStart);
+            DrawTextEx(monoFont, ">", {rightBtn.x + 8, rightBtn.y + 2}, 20, 1.0f, theme.textMain);
+            
+            float scrollPct = listCodeScrollX / maxScroll;
+            float scrollBarW = panelW - 140; 
+            DrawRectangle(panelX + 20, panelY + panelH - 22, scrollBarW, 4, GetColor(0xFFFFFF20));
+            DrawRectangle(panelX + 20 + scrollPct * (scrollBarW - 40), panelY + panelH - 24, 40, 8, theme.btnGradEnd);
+        } else {
+            listCodeScrollX = 0.0f;
+        }
+
+        BeginScissorMode((int)panelX, (int)panelY, (int)panelW, (int)(panelH - 40));
+
+        for (int i = 0; i < step.codeText.size(); i++) {
+            float lineY = panelY + 20.0f + i * 35.0f;
+            
+            if (i == step.activeCodeLine) {
+                DrawRectangle(panelX + 2, lineY - 2, panelW - 4, 35, theme.btnHoverBase);
+                DrawRectangle(panelX + 2, lineY - 2, 4, 35, theme.nodeHighlight); 
+            }
+            Color cColor = (i == step.activeCodeLine) ? theme.textMain : theme.textMuted;
+            DrawTextEx(monoFont, step.codeText[i].c_str(), {panelX + 20.0f - listCodeScrollX, lineY + 6.0f}, 20, 1.0f, cColor);
+        }
+
+        EndScissorMode();
     }
 }

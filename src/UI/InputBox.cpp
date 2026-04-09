@@ -11,6 +11,11 @@ InputBox::InputBox(float x, float y, float width, float height,
     numbersOnly = onlyNumbers;
 }
 
+void InputBox::SetPosition(float newX, float newY) {
+    bounds.x = newX;
+    bounds.y = newY;
+}
+
 void InputBox::SetBounds(float x, float y, float w, float h) {
     bounds = {x, y, w, h};
 }

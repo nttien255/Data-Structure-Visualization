@@ -33,7 +33,8 @@ public:
     Button(float x, float y, float width, float height, 
            std::string label, IconType icon = IconType::NONE,
            ButtonStyle btnStyle = ButtonStyle::PRIMARY);
-
+    
+    void SetPosition(float newX, float newY);
     void SetBounds(float x, float y, float w, float h);
     void SetText(std::string newText);
     void SetEnabled(bool enabled);

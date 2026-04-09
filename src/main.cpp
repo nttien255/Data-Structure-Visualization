@@ -3,12 +3,16 @@
 #include "Core/Theme.h"
 #include "Screens/MainMenuScreen.h"
 #include "Screens/ListScreen.h"
+#include "Screens/TrieScreen.h"
+#include "Screens/RBScreen.h"
 
 int main() {
-    // Windowed mode with reasonable default size
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
-    InitWindow(1280, 720, "Data Structure Visualizer");
-    SetWindowMinSize(1024, 600);
+    
+    InitWindow(1600, 900, "Data Structure Visualizer");
+    SetWindowMinSize(1280, 720); 
+    
+    MaximizeWindow();
     SetTargetFPS(60);
     SetExitKey(KEY_NULL);
 
@@ -26,12 +30,21 @@ int main() {
 
     MainMenuScreen mainMenu;
     ListScreen listScreen;
+    TrieScreen trieScreen;
+    RBScreen rbScreen;
 
     while (!WindowShouldClose()) {
         if (currentState == AppState::EXIT_APP) break;
 
-        if (IsKeyPressed(KEY_T)) isDarkMode = !isDarkMode;
-        if (IsKeyPressed(KEY_F11)) ToggleFullscreen();
+        bool isTyping = false;
+        if (currentState == AppState::TRIE) isTyping = trieScreen.IsAnyInputActive();
+        if (currentState == AppState::SINGLY_LINKED_LIST) isTyping = listScreen.IsAnyInputActive();
+        if (currentState == AppState::RBTREE) isTyping = rbScreen.IsAnyInputActive();
+
+        if (!isTyping) {
+            if (IsKeyPressed(KEY_T)) isDarkMode = !isDarkMode;
+            if (IsKeyPressed(KEY_F11)) ToggleFullscreen();
+        }
 
         Theme currentTheme = isDarkMode ? DarkTheme : LightTheme;
 
@@ -41,6 +54,12 @@ int main() {
                 break;
             case AppState::SINGLY_LINKED_LIST:
                 listScreen.Update(currentState);
+                break;
+            case AppState::TRIE:
+                trieScreen.Update(currentState);
+                break;
+            case AppState::RBTREE:
+                rbScreen.Update(currentState);
                 break;
             default:
                 break;
@@ -56,11 +75,16 @@ int main() {
             case AppState::SINGLY_LINKED_LIST:
                 listScreen.Draw(currentTheme, uiFont, monoFont);
                 break;
+            case AppState::TRIE:
+                trieScreen.Draw(currentTheme, uiFont, monoFont);
+                break;
+            case AppState::RBTREE:
+                rbScreen.Draw(currentTheme, uiFont, monoFont);
+                break;
             default:
                 break;
         }
 
-        // Footer hint
         const char* hint = "[T] Theme  [F11] Fullscreen";
         Vector2 hintSize = MeasureTextEx(monoFont, hint, 16, 1.0f);
         DrawTextEx(monoFont, hint, 

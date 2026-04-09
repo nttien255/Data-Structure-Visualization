@@ -20,6 +20,7 @@ public:
              std::string placeholderText = "", int maxLen = 20, 
              bool onlyNumbers = false);
 
+    void SetPosition(float newX, float newY);
     void SetBounds(float x, float y, float w, float h);
     void Update();
     void Draw(Theme theme, Font font);
