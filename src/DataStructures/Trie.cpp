@@ -97,7 +97,8 @@ void Trie::TakeSnapshot(int activeLine, std::vector<std::string> code) {
 // ==========================================
 // TÍNH NĂNG: INSERT (THÊM TỪ)
 // ==========================================
-void Trie::Insert(std::string word) {
+void Trie::Insert(std::string word, bool clearSteps) {
+    
     steps.clear();
     currentStep = 0;
     currentNodeHighlight = nullptr;
@@ -140,6 +141,20 @@ void Trie::Insert(std::string word) {
     currentSuccessNode = curr;
     currentNodeHighlight = nullptr;
     TakeSnapshot(6, code); 
+}
+
+void Trie::InitFromArray(std::vector<std::string> arr) {
+    ClearList(); 
+    steps.clear(); 
+    currentStep = 0; 
+    currentNodeHighlight = nullptr; 
+    currentSuccessNode = nullptr;
+    
+    // Nối tiếp Animation cho từng từ trong mảng
+    for (const std::string& w : arr) {
+        Insert(w, false); 
+    }
+    currentOpText = "";
 }
 
 // ==========================================

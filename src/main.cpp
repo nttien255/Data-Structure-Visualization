@@ -5,6 +5,8 @@
 #include "Screens/ListScreen.h"
 #include "Screens/TrieScreen.h"
 #include "Screens/RBScreen.h"
+#include "Screens/BFSScreen.h"
+#include "Screens/MSTScreen.h"
 
 int main() {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
@@ -32,6 +34,8 @@ int main() {
     ListScreen listScreen;
     TrieScreen trieScreen;
     RBScreen rbScreen;
+    BFSScreen bfsScreen;
+    MSTScreen mstScreen;
 
     while (!WindowShouldClose()) {
         if (currentState == AppState::EXIT_APP) break;
@@ -40,6 +44,8 @@ int main() {
         if (currentState == AppState::TRIE) isTyping = trieScreen.IsAnyInputActive();
         if (currentState == AppState::SINGLY_LINKED_LIST) isTyping = listScreen.IsAnyInputActive();
         if (currentState == AppState::RBTREE) isTyping = rbScreen.IsAnyInputActive();
+        if (currentState == AppState::GRAPH_BFS) isTyping = bfsScreen.IsAnyInputActive();
+        if (currentState == AppState::GRAPH_MST) isTyping = mstScreen.IsAnyInputActive();
 
         if (!isTyping) {
             if (IsKeyPressed(KEY_T)) isDarkMode = !isDarkMode;
@@ -49,47 +55,31 @@ int main() {
         Theme currentTheme = isDarkMode ? DarkTheme : LightTheme;
 
         switch (currentState) {
-            case AppState::MAIN_MENU:
-                mainMenu.Update(currentState);
-                break;
-            case AppState::SINGLY_LINKED_LIST:
-                listScreen.Update(currentState);
-                break;
-            case AppState::TRIE:
-                trieScreen.Update(currentState);
-                break;
-            case AppState::RBTREE:
-                rbScreen.Update(currentState);
-                break;
-            default:
-                break;
+            case AppState::MAIN_MENU: mainMenu.Update(currentState); break;
+            case AppState::SINGLY_LINKED_LIST: listScreen.Update(currentState); break;
+            case AppState::TRIE: trieScreen.Update(currentState); break;
+            case AppState::RBTREE: rbScreen.Update(currentState); break;
+            case AppState::GRAPH_BFS: bfsScreen.Update(currentState); break;
+            case AppState::GRAPH_MST: mstScreen.Update(currentState); break;
+            default: break;
         }
 
         BeginDrawing();
         ClearBackground(currentTheme.background);
 
         switch (currentState) {
-            case AppState::MAIN_MENU:
-                mainMenu.Draw(currentTheme, uiFont, monoFont);
-                break;
-            case AppState::SINGLY_LINKED_LIST:
-                listScreen.Draw(currentTheme, uiFont, monoFont);
-                break;
-            case AppState::TRIE:
-                trieScreen.Draw(currentTheme, uiFont, monoFont);
-                break;
-            case AppState::RBTREE:
-                rbScreen.Draw(currentTheme, uiFont, monoFont);
-                break;
-            default:
-                break;
+            case AppState::MAIN_MENU: mainMenu.Draw(currentTheme, uiFont, monoFont); break;
+            case AppState::SINGLY_LINKED_LIST: listScreen.Draw(currentTheme, uiFont, monoFont); break;
+            case AppState::TRIE: trieScreen.Draw(currentTheme, uiFont, monoFont); break;
+            case AppState::RBTREE: rbScreen.Draw(currentTheme, uiFont, monoFont); break;
+            case AppState::GRAPH_BFS: bfsScreen.Draw(currentTheme, uiFont, monoFont); break;
+            case AppState::GRAPH_MST: mstScreen.Draw(currentTheme, uiFont, monoFont); break;
+            default: break;
         }
 
         const char* hint = "[T] Theme  [F11] Fullscreen";
         Vector2 hintSize = MeasureTextEx(monoFont, hint, 16, 1.0f);
-        DrawTextEx(monoFont, hint, 
-            {(float)GetScreenWidth() - hintSize.x - 15, (float)GetScreenHeight() - 25}, 
-            16, 1.0f, currentTheme.textMuted);
+        DrawTextEx(monoFont, hint, {(float)GetScreenWidth() - hintSize.x - 15, (float)GetScreenHeight() - 25}, 16, 1.0f, currentTheme.textMuted);
 
         EndDrawing();
     }

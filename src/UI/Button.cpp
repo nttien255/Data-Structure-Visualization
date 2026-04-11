@@ -15,6 +15,55 @@ static Color LerpColor(Color c1, Color c2, float t) {
     };
 }
 
+// =======================================================
+// HÀM CUSTOM: VẼ GRADIENT BO TRÒN (Giải quyết góc nhọn)
+// =======================================================
+static void DrawRoundedGradientH(Rectangle rec, float roundness, Color left, Color right) {
+    float radius = (rec.width > rec.height ? rec.height : rec.width) * roundness / 2.0f;
+    if (radius <= 0.0f) {
+        DrawRectangleGradientH((int)rec.x, (int)rec.y, (int)rec.width, (int)rec.height, left, right);
+        return;
+    }
+
+    float cx1 = rec.x + radius;
+    float cx2 = rec.x + rec.width - radius;
+    float cy1 = rec.y + radius;
+    float cy2 = rec.y + rec.height - radius;
+
+    for (int i = 0; i < (int)rec.width; i++) {
+        float x = rec.x + i;
+        float topY = rec.y;
+        float bottomY = rec.y + rec.height;
+
+        // Cắt gọt góc bên trái
+        if (x < cx1) {
+            float dx = cx1 - x;
+            float dy = std::sqrt(radius * radius - dx * dx);
+            topY = cy1 - dy;
+            bottomY = cy2 + dy;
+        } 
+        // Cắt gọt góc bên phải
+        else if (x > cx2) {
+            float dx = x - cx2;
+            float dy = std::sqrt(radius * radius - dx * dx);
+            topY = cy1 - dy;
+            bottomY = cy2 + dy;
+        }
+
+        // Tính toán màu nội suy tại điểm x
+        float t = (float)i / (rec.width - 1);
+        Color c = {
+            (unsigned char)(left.r + (right.r - left.r) * t),
+            (unsigned char)(left.g + (right.g - left.g) * t),
+            (unsigned char)(left.b + (right.b - left.b) * t),
+            (unsigned char)(left.a + (right.a - left.a) * t)
+        };
+
+        // Vẽ từng dải màu siêu nhỏ để tạo thành khối bo tròn
+        DrawRectangle((int)x, (int)topY, 1, (int)(bottomY - topY), c);
+    }
+}
+
 Button::Button(float x, float y, float width, float height, 
                std::string label, IconType icon, ButtonStyle btnStyle) {
     bounds = {x, y, width, height};
@@ -88,28 +137,29 @@ void Button::Draw(Theme theme, Font font) {
 
     Rectangle renderBounds = bounds;
     if (isHovered && isEnabled) {
-        renderBounds.y -= 2.0f;
+        renderBounds.y -= 2.0f; // Hiệu ứng nhún khi Hover
     }
 
-    // Shadow
+    // Shadow (Đổ bóng)
     Rectangle shadowBounds = {
         renderBounds.x + 2, 
         renderBounds.y + 4, 
         renderBounds.width, 
         renderBounds.height
     };
-    DrawRectangleRounded(shadowBounds, 0.2f, 8, GetColor(0x00000025));
+    DrawRectangleRounded(shadowBounds, 0.2f, 10, GetColor(0x00000025));
 
-    // Gradient background
+    // ==========================================
+    // ÁP DỤNG MÀU GRADIENT VÀO HÀM CUSTOM Ở TRÊN
+    // ==========================================
     Color left = LerpColor(gradStart, GetColor(0x1D4ED8FF), hoverProgress * 0.3f);
     Color right = LerpColor(gradEnd, GetColor(0x3B82F6FF), hoverProgress * 0.3f);
     
-    DrawRectangleGradientH(
-        (int)renderBounds.x, (int)renderBounds.y,
-        (int)renderBounds.width, (int)renderBounds.height,
-        left, right
-    );
-    DrawRectangleRoundedLines(renderBounds, 0.2f, 8, borderColor);
+    // Vẽ nền Gradient bị gọt đi 4 góc
+    DrawRoundedGradientH(renderBounds, 0.2f, left, right);
+    
+    // Vẽ viền đè lên để các mép sắc nét tuyệt đối
+    DrawRectangleRoundedLines(renderBounds, 0.2f, 10, borderColor);
 
     // Icon (Giữ nguyên kích thước to)
     float iconSize = bounds.height * 0.5f; 
@@ -129,29 +179,26 @@ void Button::Draw(Theme theme, Font font) {
 
     Vector2 textSize = MeasureTextEx(font, text.c_str(), fontSize, 1.0f);
     
-    // 1. Tính toán khoảng trống tối đa cho phép chữ hiển thị
     float availableWidth;
     float startTextX;
     
     if (iconType != IconType::NONE) {
-        startTextX = iconX + iconSize + 20; // Chữ bắt đầu sau icon
-        availableWidth = bounds.width - (startTextX - bounds.x) - 20; // Trừ hao 20px lề phải
+        startTextX = iconX + iconSize + 20; 
+        availableWidth = bounds.width - (startTextX - bounds.x) - 20; 
     } else {
-        availableWidth = bounds.width - 40; // Trừ hao 20px lề trái, 20px lề phải
+        availableWidth = bounds.width - 40; 
     }
 
-    // 2. Vòng lặp bóp nhỏ chữ nếu bị tràn ngang
+    // Tự động bóp nhỏ font nếu text quá dài
     while (textSize.x > availableWidth && fontSize > 12) {
-        fontSize -= 1.0f; // Giảm dần từng size một
+        fontSize -= 1.0f; 
         textSize = MeasureTextEx(font, text.c_str(), fontSize, 1.0f);
     }
 
-    // 3. Tính toán lại tọa độ vẽ sau khi đã có fontSize chuẩn
     float textX;
     if (iconType != IconType::NONE) {
         textX = startTextX;
     } else {
-        // Nếu không có icon thì căn giữa
         textX = renderBounds.x + (renderBounds.width - textSize.x) / 2;
     }
     float textY = renderBounds.y + (renderBounds.height - textSize.y) / 2;
@@ -220,7 +267,6 @@ void Button::DrawIcon(Theme theme, float x, float y, float size) {
             break;
         }
         case IconType::RANDOM: {
-            // Dice icon
             DrawRectangleRounded({x, y, size, size}, 0.2f, 4, GetColor(0xFFFFFF30));
             DrawRectangleRoundedLines({x, y, size, size}, 0.2f, 4, col);
             float dotR = size / 10;
@@ -260,7 +306,6 @@ void Button::DrawIcon(Theme theme, float x, float y, float size) {
             break;
         }
         case IconType::HOME: {
-            // Simple house
             DrawTriangle({cx, y}, {x, cy}, {x + size, cy}, col);
             DrawRectangle(x + size/4, cy, size/2, size/2, col);
             break;

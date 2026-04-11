@@ -14,6 +14,7 @@ struct AnimationStep {
     std::vector<NodeState> states;
     int activeCodeLine;
     std::vector<std::string> codeText;
+    std::string currentOperation; // LƯU TRẠNG THÁI HIỂN THỊ
 };
 
 class SinglyLinkedList {
@@ -22,14 +23,12 @@ private:
     std::vector<AnimationStep> steps;
     int currentStep;
     float timer;
-    float completionTimer; // BỘ ĐẾM 3 GIÂY
+    float completionTimer; 
+    std::string currentOpText; // TEXT TẠM THỜI
     
-    // HISTORY CHO UNDO/REDO
     std::vector<std::vector<int>> history;
     int historyIndex;
     void SaveState();
-    
-    // LƯU TỌA ĐỘ NODE ĐỂ CLICK
     std::vector<Rectangle> nodeRects;
 
 public:
@@ -40,8 +39,8 @@ public:
     SinglyLinkedList();
 
     void InitRandom(int size);
-    void InitFromArray(std::vector<int> arr);
-    void AddTail(int val);
+    void InitFromArray(std::vector<int> arr); // CHẠY ANIMATION
+    void AddTail(int val, bool clearSteps = true); // CỜ CLEAR
     void Search(int val);
     void Delete(int val);
     void ClearList();

@@ -35,6 +35,7 @@ struct RBAnimationStep {
     std::vector<RBDrawEdge> edges;
     int activeCodeLine;
     std::vector<std::string> codeText;
+    std::string currentOperation; // LƯU TRẠNG THÁI HIỂN THỊ
 };
 
 class RBTree {
@@ -45,6 +46,7 @@ private:
     int currentStep;
     float timer;
     RBNode* currentNodeHighlight;
+    std::string currentOpText; // BIẾN LƯU TEXT TẠM THỜI
 
     std::vector<RBNode*> history;
     int historyIndex;
@@ -56,20 +58,20 @@ private:
     void RightRotate(RBNode* x, std::vector<std::string>& code);
     void InsertFixup(RBNode* k, std::vector<std::string>& code);
 
-    // CẬP NHẬT: Trả về float để vẽ Edges chính xác 100%
     float CalculatePositions(RBNode* node, int depth, float& currentX, float horizontalGap, float verticalGap, RBAnimationStep& step);
     void TakeSnapshot(int activeLine, std::vector<std::string> code);
 
 public:
-    std::vector<RBAnimationStep> steps; // Chuyển ra public để Screen có thể reset
+    std::vector<RBAnimationStep> steps; 
     float speedMultiplier;
     bool isStepByStep;
 
     RBTree();
-    void Insert(int key);
+    void Insert(int key, bool clearSteps = true); // CỜ CLEAR STEPS
+    void InitFromArray(std::vector<int> arr);     // INIT CHẠY ANIMATION
     void InitRandom(int count);
     void ClearTree();
-    void ForceStaticView(); // Hàm mới: Ép vẽ cây tĩnh khi không có animation
+    void ForceStaticView(); 
 
     void Undo();
     void Redo();
