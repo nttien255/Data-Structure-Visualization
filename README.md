@@ -12,8 +12,8 @@ Before running the project, ensure you have the following installed:
 ### Method 1: Clone via Git (Recommended)
 If you have Git installed, open your terminal or command prompt and run:
 ```bash
-git clone [https://github.com/YOUR_USERNAME/YOUR_REPOSITORY_NAME.git](https://github.com/YOUR_USERNAME/YOUR_REPOSITORY_NAME.git)
-cd YOUR_REPOSITORY_NAME
+git clone https://github.com/nttien255/Data-Structure-Visualization
+cd Data-Structure-Visualization
 ```
 
 ### Method 2: Manual Download (ZIP)
@@ -29,10 +29,7 @@ If you don't want to use Git, you can easily download the entire project manuall
 
 **Using CMake:**
 ```bash
-mkdir build
 cd build
-cmake ..
-make
 ./DataStructureVisualizer
 ```
 
