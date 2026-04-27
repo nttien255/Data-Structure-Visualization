@@ -87,7 +87,7 @@ void Trie::TakeSnapshot(int activeLine, std::vector<std::string> code) {
     // ĐÃ SỬA: Đẩy Root xuống y = 300.0f giống với RBTree
     float startX = 0.0f; 
     float startY = 300.0f; 
-    float gap = 80.0f; 
+    float gap = 120.0f; 
 
     CalculatePositionsAndCapture(root, startX, startY, gap, step, "");
     
@@ -150,11 +150,23 @@ void Trie::InitFromArray(std::vector<std::string> arr) {
     currentNodeHighlight = nullptr; 
     currentSuccessNode = nullptr;
     
-    // Nối tiếp Animation cho từng từ trong mảng
+    // 1. Chạy vòng lặp chèn toàn bộ các từ vào cây
+    // (Lúc này mảng steps sẽ bị nhét đầy các frame animation)
     for (const std::string& w : arr) {
         Insert(w, false); 
     }
-    currentOpText = "";
+    
+    // ==================================================
+    // 2. ÉP HIỂN THỊ NGUYÊN CÂY (FORCE STATIC VIEW)
+    // ==================================================
+    steps.clear(); // Xóa sạch toàn bộ animation thừa vừa tạo ra
+    currentStep = 0;
+    currentOpText = ""; // Xóa chữ "Inserting..."
+    currentNodeHighlight = nullptr; 
+    currentSuccessNode = nullptr;
+    
+    // Chụp lại đúng 1 frame duy nhất chứa kết quả cuối cùng của toàn bộ cây
+    TakeSnapshot(0, {"Trie Initialized with " + std::to_string(arr.size()) + " words."});
 }
 
 // ==========================================
@@ -342,7 +354,7 @@ void Trie::Draw(Theme theme, Font uiFont, Font monoFont) {
     float zoomY = availableH / (treeH > 0 ? treeH : 1.0f);
     
     float targetZoom = std::min(zoomX, zoomY);
-    if (targetZoom > 1.5f) targetZoom = 1.5f; // Giới hạn phóng to như RBTree
+    if (targetZoom > 2.0f) targetZoom = 2.0f; // Giới hạn phóng to như RBTree
     if (targetZoom < 0.3f) targetZoom = 0.3f; // Giới hạn thu nhỏ như RBTree
 
     Camera2D camera = { 0 };
@@ -382,17 +394,17 @@ void Trie::Draw(Theme theme, Font uiFont, Font monoFont) {
         }
 
         if (node.text != "") {
-            Vector2 textSize = MeasureTextEx(uiFont, node.text.c_str(), 20, 1.0f);
-            float rectW = textSize.x + 24.0f; 
-            if (rectW < 50.0f) rectW = 50.0f; 
+            Vector2 textSize = MeasureTextEx(uiFont, node.text.c_str(), 26, 1.0f);
+            float rectW = textSize.x + 30.0f;
+            if (rectW < 70.0f) rectW = 70.0f;
+            Rectangle rect = {node.x - rectW / 2.0f, node.y - 25.0f, rectW, 50.0f};
             
-            Rectangle rect = {node.x - rectW / 2.0f, node.y - 20.0f, rectW, 40.0f};
             DrawRectangleRounded(rect, 0.5f, 10, bgColor);
             DrawRectangleRoundedLines(rect, 0.5f, 10, borderColor);
             DrawTextEx(uiFont, node.text.c_str(), {node.x - textSize.x / 2.0f, node.y - 10.0f}, 20, 1.0f, theme.textMain);
         } else {
-            DrawCircle(node.x, node.y, 8.0f, bgColor);
-            DrawCircleLines(node.x, node.y, 8.0f, borderColor);
+            DrawCircle(node.x, node.y, 12.0f, bgColor);
+            DrawCircleLines(node.x, node.y, 12.0f, borderColor);
         }
     }
 

@@ -13,9 +13,9 @@
 },
 {
   "directory": "D:/university/CS163/Data-Structure-Visualization/build",
-  "command": "C:\\mingw64\\bin\\g++.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP @CMakeFiles/DataStructureVisualizer.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\DataStructureVisualizer.dir\\src\\DataStructures\\MinHeap.cpp.obj -c D:\\university\\CS163\\Data-Structure-Visualization\\src\\DataStructures\\MinHeap.cpp",
-  "file": "D:/university/CS163/Data-Structure-Visualization/src/DataStructures/MinHeap.cpp",
-  "output": "CMakeFiles/DataStructureVisualizer.dir/src/DataStructures/MinHeap.cpp.obj"
+  "command": "C:\\mingw64\\bin\\g++.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP @CMakeFiles/DataStructureVisualizer.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\DataStructureVisualizer.dir\\src\\DataStructures\\Heap.cpp.obj -c D:\\university\\CS163\\Data-Structure-Visualization\\src\\DataStructures\\Heap.cpp",
+  "file": "D:/university/CS163/Data-Structure-Visualization/src/DataStructures/Heap.cpp",
+  "output": "CMakeFiles/DataStructureVisualizer.dir/src/DataStructures/Heap.cpp.obj"
 },
 {
   "directory": "D:/university/CS163/Data-Structure-Visualization/build",
@@ -40,6 +40,12 @@
   "command": "C:\\mingw64\\bin\\g++.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP @CMakeFiles/DataStructureVisualizer.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\DataStructureVisualizer.dir\\src\\Screens\\BFSSCreen.cpp.obj -c D:\\university\\CS163\\Data-Structure-Visualization\\src\\Screens\\BFSSCreen.cpp",
   "file": "D:/university/CS163/Data-Structure-Visualization/src/Screens/BFSSCreen.cpp",
   "output": "CMakeFiles/DataStructureVisualizer.dir/src/Screens/BFSSCreen.cpp.obj"
+},
+{
+  "directory": "D:/university/CS163/Data-Structure-Visualization/build",
+  "command": "C:\\mingw64\\bin\\g++.exe -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP @CMakeFiles/DataStructureVisualizer.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\DataStructureVisualizer.dir\\src\\Screens\\HeapScreen.cpp.obj -c D:\\university\\CS163\\Data-Structure-Visualization\\src\\Screens\\HeapScreen.cpp",
+  "file": "D:/university/CS163/Data-Structure-Visualization/src/Screens/HeapScreen.cpp",
+  "output": "CMakeFiles/DataStructureVisualizer.dir/src/Screens/HeapScreen.cpp.obj"
 },
 {
   "directory": "D:/university/CS163/Data-Structure-Visualization/build",

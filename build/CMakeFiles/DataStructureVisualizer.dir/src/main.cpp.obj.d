@@ -130,4 +130,6 @@ CMakeFiles/DataStructureVisualizer.dir/src/main.cpp.obj: \
  C:/mingw64/include/c++/15.2.0/bits/stl_multimap.h \
  C:/mingw64/include/c++/15.2.0/bits/erase_if.h \
  D:/university/CS163/Data-Structure-Visualization/include/Screens/MSTScreen.h \
- D:/university/CS163/Data-Structure-Visualization/include/DataStructures/GraphMST.h
+ D:/university/CS163/Data-Structure-Visualization/include/DataStructures/GraphMST.h \
+ D:/university/CS163/Data-Structure-Visualization/include/Screens/HeapScreen.h \
+ D:/university/CS163/Data-Structure-Visualization/include/DataStructures/Heap.h

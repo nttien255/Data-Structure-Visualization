@@ -250,7 +250,7 @@ void RBTree::Draw(Theme theme, Font uiFont, Font monoFont) {
     for (auto& edge : step.edges) DrawLineEx({edge.x1, edge.y1}, {edge.x2, edge.y2}, 3.0f, edge.color);
     
     for (auto& node : step.nodes) {
-        Color bgColor = (node.color == RBColor::RB_RED) ? GetColor(0xEF4444FF) : GetColor(0x111827FF);
+        Color bgColor = (node.color == RBColor::RB_RED) ? GetColor(0xEF4444FF) : GetColor(0x2D3748FF);
         Color borderColor = (node.color == RBColor::RB_RED) ? GetColor(0xF87171FF) : theme.panelBorder;
 
         if (node.state == RBNodeState::HIGHLIGHT) { 

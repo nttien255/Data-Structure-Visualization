@@ -32,17 +32,17 @@ void InputBox::Update() {
 
     framesCounter++;
 
-    // Handle paste (Ctrl+V)
-    if ((IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL)) 
-         && IsKeyPressed(KEY_V)) {
+    // 1. Handle paste (Ctrl+V)
+    if ((IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL)) && IsKeyPressed(KEY_V)) {
         const char* clipboard = GetClipboardText();
         if (clipboard) {
             std::string paste(clipboard);
             for (char c : paste) {
                 if (text.length() >= maxLength) break;
                 if (numbersOnly) {
-                    if (c >= '0' && c <= '9') text += c;
-                    else if (c == '-' && text.empty()) text += c;
+                    if ((c >= '0' && c <= '9') || c == ' ' || c == ',' || c == '-') {
+                        text += c;
+                    }
                 } else {
                     if (c >= 32 && c <= 126) text += c;
                 }
@@ -50,13 +50,11 @@ void InputBox::Update() {
         }
     }
 
-    // Handle typing
     int key = GetCharPressed();
     while (key > 0) {
         if (text.length() < maxLength) {
             if (numbersOnly) {
-                if ((key >= '0' && key <= '9') || 
-                    (key == '-' && text.empty())) {
+                if ((key >= '0' && key <= '9') || key == ' ' || key == ',' || key == '-') {
                     text += (char)key;
                 }
             } else {
@@ -65,18 +63,16 @@ void InputBox::Update() {
                 }
             }
         }
-        key = GetCharPressed();
+        key = GetCharPressed(); 
     }
 
-    // Backspace
-    if (IsKeyPressed(KEY_BACKSPACE) || 
-        (IsKeyDown(KEY_BACKSPACE) && framesCounter % 4 == 0)) {
-        if (!text.empty()) text.pop_back();
-    }
-
-    // Clear all with Ctrl+Backspace
-    if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_BACKSPACE)) {
+    if ((IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL)) && IsKeyPressed(KEY_BACKSPACE)) {
         text.clear();
+    }
+    else if (IsKeyPressed(KEY_BACKSPACE) || IsKeyPressedRepeat(KEY_BACKSPACE)) {
+        if (!text.empty()) {
+            text.pop_back();
+        }
     }
 }
 

@@ -125,7 +125,7 @@ void GraphMST::InitRandom(int count) {
 void GraphMST::CheckNodeClick() {
     if (steps.empty() && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         CalculatePositions(); Vector2 mousePos = GetMousePosition(); bool clicked = false;
-        float r = std::max(20.0f, 45.0f - nodes.size() * 1.5f);
+        float r = std::max(30.0f, 60.0f - nodes.size() * 1.5f);
         for (int i = 0; i < nodes.size(); i++) { if (CheckCollisionPointCircle(mousePos, {nodes[i].x, nodes[i].y}, r)) { selectedIndex = i; clicked = true; break; } }
         if (!clicked && mousePos.y > 180 && mousePos.y < GetScreenHeight() - 100) selectedIndex = -1;
     }
@@ -138,7 +138,7 @@ void GraphMST::StepBackward() { if (!steps.empty() && currentStep > 0) { current
 void GraphMST::Draw(Theme theme, Font uiFont, Font monoFont) {
     if (steps.empty()) ForceStaticView(); if (steps.empty()) return;
     MSTAnimationStep& step = steps[currentStep];
-    float r = std::max(20.0f, 45.0f - step.nodes.size() * 1.5f);
+    float r = std::max(30.0f, 60.0f - step.nodes.size() * 1.5f);
 
     for (auto& edge : step.edges) {
         Color ec = theme.edgeNormal; if (edge.state == MSTEdgeState::HIGHLIGHT) ec = theme.nodeHighlight; else if (edge.state == MSTEdgeState::SUCCESS) ec = theme.nodeError; 

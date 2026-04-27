@@ -7,6 +7,7 @@
 #include "Screens/RBScreen.h"
 #include "Screens/BFSScreen.h"
 #include "Screens/MSTScreen.h"
+#include "Screens/HeapScreen.h"
 
 int main() {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
@@ -36,6 +37,7 @@ int main() {
     RBScreen rbScreen;
     BFSScreen bfsScreen;
     MSTScreen mstScreen;
+    HeapScreen heapScreen;
 
     while (!WindowShouldClose()) {
         if (currentState == AppState::EXIT_APP) break;
@@ -46,7 +48,8 @@ int main() {
         if (currentState == AppState::RBTREE) isTyping = rbScreen.IsAnyInputActive();
         if (currentState == AppState::GRAPH_BFS) isTyping = bfsScreen.IsAnyInputActive();
         if (currentState == AppState::GRAPH_MST) isTyping = mstScreen.IsAnyInputActive();
-
+        if (currentState == AppState::MIN_HEAP) isTyping = heapScreen.IsAnyInputActive();
+        
         if (!isTyping) {
             if (IsKeyPressed(KEY_T)) isDarkMode = !isDarkMode;
             if (IsKeyPressed(KEY_F11)) ToggleFullscreen();
@@ -61,6 +64,7 @@ int main() {
             case AppState::RBTREE: rbScreen.Update(currentState); break;
             case AppState::GRAPH_BFS: bfsScreen.Update(currentState); break;
             case AppState::GRAPH_MST: mstScreen.Update(currentState); break;
+            case AppState::MIN_HEAP: heapScreen.Update(currentState); break;
             default: break;
         }
 
@@ -74,6 +78,7 @@ int main() {
             case AppState::RBTREE: rbScreen.Draw(currentTheme, uiFont, monoFont); break;
             case AppState::GRAPH_BFS: bfsScreen.Draw(currentTheme, uiFont, monoFont); break;
             case AppState::GRAPH_MST: mstScreen.Draw(currentTheme, uiFont, monoFont); break;
+            case AppState::MIN_HEAP: heapScreen.Draw(currentTheme, uiFont, monoFont); break;
             default: break;
         }
 

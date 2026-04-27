@@ -148,7 +148,7 @@ void SinglyLinkedList::Draw(Theme theme, Font uiFont, Font monoFont, UILayout la
     if (currentData.empty()) {
         DrawTextEx(uiFont, "List is empty. Add elements or initialize.", { layout.screenW/2 - 200, layout.screenH/2 }, 24, 1.0f, theme.textMuted);
     } else {
-        float baseNodeW = 70.0f; float baseNodeH = 50.0f; float baseSpacing = 110.0f; int n = currentData.size();
+        float baseNodeW = 130.0f; float baseNodeH = 80.0f; float baseSpacing = 150.0f; int n = currentData.size();
         float totalBaseWidth = n * baseSpacing; float availableWidth = layout.screenW - 100.0f; 
         float scale = 1.0f; if (totalBaseWidth > availableWidth) scale = availableWidth / totalBaseWidth;
         float nodeW = baseNodeW * scale; float nodeH = baseNodeH * scale; float spacing = baseSpacing * scale; float totalWidth = n * spacing;
@@ -170,7 +170,7 @@ void SinglyLinkedList::Draw(Theme theme, Font uiFont, Font monoFont, UILayout la
             DrawRectangleRounded(nodeRect, 0.2f, 8, boxColor); DrawRectangleRoundedLines(nodeRect, 0.2f, 8, borderColor);
             if (i == selectedIndex) DrawRectangleRoundedLines(nodeRect, 0.2f, 8, theme.textHighlighted);
 
-            const char* valText = TextFormat("%d", currentData[i]); float fontSize = 24 * scale; if (fontSize < 10) fontSize = 10; 
+            const char* valText = TextFormat("%d", currentData[i]); float fontSize = 28 * scale; if (fontSize < 10) fontSize = 10; 
             Vector2 tSize = MeasureTextEx(monoFont, valText, fontSize, 1.0f);
             DrawTextEx(monoFont, valText, {x + (nodeW - tSize.x) / 2, y + (nodeH - tSize.y) / 2}, fontSize, 1.0f, theme.textMain);
 

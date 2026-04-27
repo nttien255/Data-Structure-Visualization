@@ -114,7 +114,9 @@ void GraphBFS::InitRandom(int count) {
 void GraphBFS::CheckNodeClick() {
     if (steps.empty() && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         CalculatePositions(); Vector2 mousePos = GetMousePosition(); bool clicked = false;
-        float r = std::max(20.0f, 45.0f - nodes.size() * 1.5f);
+        
+        float r = std::max(30.0f, 60.0f - nodes.size() * 1.5f);
+        
         for (int i = 0; i < nodes.size(); i++) { if (CheckCollisionPointCircle(mousePos, {nodes[i].x, nodes[i].y}, r)) { selectedIndex = i; clicked = true; break; } }
         if (!clicked && mousePos.y > 180 && mousePos.y < GetScreenHeight() - 100) selectedIndex = -1;
     }
@@ -127,7 +129,11 @@ void GraphBFS::StepBackward() { if (!steps.empty() && currentStep > 0) { current
 void GraphBFS::Draw(Theme theme, Font uiFont, Font monoFont) {
     if (steps.empty()) ForceStaticView(); if (steps.empty()) return;
     BFSAnimationStep& step = steps[currentStep];
-    float r = std::max(20.0f, 45.0f - step.nodes.size() * 1.5f);
+
+    // ==========================================
+    // ĐÃ CHỈNH KÍCH THƯỚC NODE TẠI ĐÂY
+    // ==========================================
+    float r = std::max(30.0f, 60.0f - step.nodes.size() * 1.5f);
 
     for (auto& edge : step.edges) {
         Color ec = theme.edgeNormal; if (edge.state == GraphEdgeState::HIGHLIGHT) ec = theme.nodeHighlight; else if (edge.state == GraphEdgeState::SUCCESS) ec = theme.nodeSuccess;
@@ -152,10 +158,10 @@ void GraphBFS::Draw(Theme theme, Font uiFont, Font monoFont) {
         DrawTextEx(uiFont, step.currentOperation.c_str(), {boxX + 20.0f, 190.0f + 11.0f}, 28, 1.0f, WHITE);
     }
 
-    // ĐÃ FIX: Hạ thấp bảng, thêm nút Close [X]
+    // Bảng Distances
     if (step.sourceValue != -1 && !step.distances.empty()) {
         float pX = 30.0f; 
-        float pY = 260.0f; // ĐÃ HẠ THẤP KHỎI INPUT
+        float pY = 260.0f; 
         float panelW = 250.0f;
         float itemH = 30.0f;
         float maxVisible = 5.0f;
