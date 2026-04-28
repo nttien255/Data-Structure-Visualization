@@ -26,8 +26,6 @@ If you don't want to use Git, you can easily download the entire project manuall
 ---
 
 ## How to Build and Run
-
-**Using CMake:**
 ```bash
 cd build
 ./DataStructureVisualizer
