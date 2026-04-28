@@ -1,0 +1,19 @@
+# Bỏ qua thư mục build và các file thực thi
+build/
+bin/
+out/
+*.exe
+*.o
+*.obj
+*.out
+
+# Bỏ qua các file cấu hình của Editor/IDE (VS Code, Visual Studio, CLion)
+.vscode/
+.vs/
+.idea/
+cmake-build-*/
+*.user
+
+# Bỏ qua các file hệ điều hành sinh ra
+.DS_Store
+Thumbs.db
