@@ -45,6 +45,8 @@ private:
     TrieNode* currentNodeHighlight;
     TrieNode* currentSuccessNode;
     std::string currentOpText; // TEXT TẠM THỜI
+    std::vector<TrieNode*> history;
+    int historyIndex;
 
     CalculateResult CalculatePositionsAndCapture(TrieNode* node, float x, float y, float horizontalGap, TrieAnimationStep& step, std::string currentPrefix);
     void TakeSnapshot(int activeLine, std::vector<std::string> code);
@@ -63,10 +65,15 @@ public:
     void Search(std::string word);
     void Delete(std::string word);
     void ClearList();
-
-    void Update();
+    void SaveState();
+    void Undo();
+    void Redo();
+    void ForceStaticView();
+    TrieNode* CloneTrie(TrieNode* node);
+    void ClearTrieMemory(TrieNode* node);
     void StepForward();
     void StepBackward();
+    void Update();
     void Draw(Theme theme, Font uiFont, Font monoFont);
 };
 

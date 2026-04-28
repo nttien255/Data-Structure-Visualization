@@ -1,6 +1,6 @@
 CMakeFiles/DataStructureVisualizer.dir/src/main.cpp.obj: \
  D:\university\CS163\Data-Structure-Visualization\src\main.cpp \
- D:/university/CS163/Data-Structure-Visualization/raylib/src/raylib.h \
+ D:/university/CS163/Data-Structure-Visualization/include/raylib.h \
  C:/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/stdarg.h \
  C:/mingw64/x86_64-w64-mingw32/include/stdarg.h \
  C:/mingw64/x86_64-w64-mingw32/include/_mingw_stdarg.h \

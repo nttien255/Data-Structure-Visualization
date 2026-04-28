@@ -12,17 +12,21 @@ TrieScreen::TrieScreen()
       initArrayBtn(430, 110, 150, 75, "Init", IconType::NONE),
       loadFileBtn(600, 110, 150, 75, "File", IconType::NONE),
       clearBtn(770, 110, 150, 75, "Clear", IconType::NONE),
+      
+      undoBtn(20, 0, 150, 75, "Undo", IconType::NONE), 
+      redoBtn(190, 0, 150, 75, "Redo", IconType::NONE),
+      
       prevBtn(360, 0, 120, 75, "<<", IconType::NONE),
       modeBtn(500, 0, 240, 75, "Mode: Auto", IconType::NONE),
       nextBtn(760, 0, 120, 75, ">>", IconType::NONE)
 { 
-    // XOÁ INITRANDOM - MÀN HÌNH RỖNG LÚC ĐẦU
 }
 
 void TrieScreen::Update(AppState& currentState) {
     float sh = GetScreenHeight(); float botY = sh - 95.0f;
     prevBtn.SetPosition(360, botY); modeBtn.SetPosition(500, botY); nextBtn.SetPosition(760, botY);
-
+    undoBtn.SetPosition(20, botY); redoBtn.SetPosition(190, botY);
+    
     inputBox.Update(); arrayInput.Update(); trie.Update(); 
     if (homeBtn.Update()) currentState = AppState::MAIN_MENU;
 
@@ -30,7 +34,8 @@ void TrieScreen::Update(AppState& currentState) {
     if (delBtn.Update()) { std::string valStr = inputBox.GetText(); if (!valStr.empty()) { trie.Delete(valStr); inputBox.Clear(); } }
     if (searchBtn.Update()) { std::string valStr = inputBox.GetText(); if (!valStr.empty()) { trie.Search(valStr); inputBox.Clear(); } }
     if (clearBtn.Update()) { trie.ClearList(); } 
-
+    if (undoBtn.Update()) trie.Undo();
+    if (redoBtn.Update()) trie.Redo();
     if (initArrayBtn.Update()) {
         std::stringstream ss(arrayInput.GetText()); std::vector<std::string> arr; std::string temp;
         while (ss >> temp) { arr.push_back(temp); }
@@ -73,7 +78,8 @@ void TrieScreen::Draw(Theme theme, Font uiFont, Font monoFont) {
     arrayInput.Draw(theme, uiFont); initArrayBtn.Draw(theme, uiFont);
     loadFileBtn.Draw(theme, uiFont); clearBtn.Draw(theme, uiFont);
     modeBtn.Draw(theme, uiFont);
-
+    undoBtn.Draw(theme, uiFont); 
+    redoBtn.Draw(theme, uiFont);
     if (trie.isStepByStep) { prevBtn.Draw(theme, uiFont); nextBtn.Draw(theme, uiFont); } 
     else { Theme disabledTheme = theme; disabledTheme.btnGradStart = theme.panelBorder; disabledTheme.btnGradEnd = theme.panelBorder; prevBtn.Draw(disabledTheme, uiFont); nextBtn.Draw(disabledTheme, uiFont); }
 

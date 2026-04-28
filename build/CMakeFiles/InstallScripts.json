@@ -1,11 +1,7 @@
 {
 	"InstallScripts" : 
 	[
-		"D:/university/CS163/Data-Structure-Visualization/build/cmake_install.cmake",
-		"D:/university/CS163/Data-Structure-Visualization/build/raylib/cmake_install.cmake",
-		"D:/university/CS163/Data-Structure-Visualization/build/raylib/raylib/cmake_install.cmake",
-		"D:/university/CS163/Data-Structure-Visualization/build/raylib/raylib/external/glfw/cmake_install.cmake",
-		"D:/university/CS163/Data-Structure-Visualization/build/raylib/raylib/external/glfw/src/cmake_install.cmake"
+		"D:/university/CS163/Data-Structure-Visualization/build/cmake_install.cmake"
 	],
 	"Parallel" : false
 }

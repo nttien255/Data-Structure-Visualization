@@ -11,17 +11,14 @@ file(GLOB_RECURSE ALL_SOURCES "src/*.cpp")
 # 2. Khai báo file thực thi
 add_executable(${PROJECT_NAME} ${ALL_SOURCES})
 
-# 3. Trỏ CMake tới thư mục 'include' của riêng project
+# 3. Trỏ CMake tới thư mục 'include' của riêng project (chứa raylib.h của bạn)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
-# =========================================================================
-# 4. TÍCH HỢP RAYLIB TỪ GIT SUBMODULE
-# (Yêu cầu phải chạy lệnh: git submodule add https://github.com/raysan5/raylib.git raylib)
-# =========================================================================
-add_subdirectory(raylib)
+# 4. Trỏ CMake tới thư mục 'lib' để nó tìm thấy file libraylib.a
+target_link_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/lib)
 
-# 5. Link thư viện (raylib từ submodule và comdlg32 cho Windows File Dialog)
-target_link_libraries(${PROJECT_NAME} PRIVATE raylib comdlg32)
+# 5. Link thư viện tĩnh (raylib) và các thư viện hệ thống Windows đi kèm
+target_link_libraries(${PROJECT_NAME} PRIVATE raylib opengl32 gdi32 winmm comdlg32)
 
 # 6. Tự động copy thư mục assets vào thư mục build khi chạy
 file(COPY ${CMAKE_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR})

@@ -384,7 +384,6 @@ DataStructureVisualizer.exe: CMakeFiles/DataStructureVisualizer.dir/src/UI/Input
 DataStructureVisualizer.exe: CMakeFiles/DataStructureVisualizer.dir/src/UI/SystemUtils.cpp.obj
 DataStructureVisualizer.exe: CMakeFiles/DataStructureVisualizer.dir/src/main.cpp.obj
 DataStructureVisualizer.exe: CMakeFiles/DataStructureVisualizer.dir/build.make
-DataStructureVisualizer.exe: raylib/raylib/libraylib.a
 DataStructureVisualizer.exe: CMakeFiles/DataStructureVisualizer.dir/linkLibs.rsp
 DataStructureVisualizer.exe: CMakeFiles/DataStructureVisualizer.dir/objects1.rsp
 DataStructureVisualizer.exe: CMakeFiles/DataStructureVisualizer.dir/link.txt

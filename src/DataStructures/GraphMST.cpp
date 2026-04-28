@@ -125,7 +125,7 @@ void GraphMST::InitRandom(int count) {
 void GraphMST::CheckNodeClick() {
     if (steps.empty() && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         CalculatePositions(); Vector2 mousePos = GetMousePosition(); bool clicked = false;
-        float r = std::max(30.0f, 60.0f - nodes.size() * 1.5f);
+    float r = std::max(30.0f, 60.0f - nodes.size() * 1.5f);
         for (int i = 0; i < nodes.size(); i++) { if (CheckCollisionPointCircle(mousePos, {nodes[i].x, nodes[i].y}, r)) { selectedIndex = i; clicked = true; break; } }
         if (!clicked && mousePos.y > 180 && mousePos.y < GetScreenHeight() - 100) selectedIndex = -1;
     }

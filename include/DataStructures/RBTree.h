@@ -67,12 +67,16 @@ public:
     bool isStepByStep;
 
     RBTree();
+    RBNode* Minimum(RBNode* node);
     void Insert(int key, bool clearSteps = true); // CỜ CLEAR STEPS
     void InitFromArray(std::vector<int> arr);     // INIT CHẠY ANIMATION
+    void Delete(int key, bool clearSteps = true);
+    void Transplant(RBNode* u, RBNode* v);
+    void DeleteFixup(RBNode* x, std::vector<std::string>& code);
     void InitRandom(int count);
     void ClearTree();
     void ForceStaticView(); 
-
+    void Search(int key, bool clearSteps = true);
     void Undo();
     void Redo();
 

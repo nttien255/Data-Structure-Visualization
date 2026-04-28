@@ -37,6 +37,11 @@ void RBScreen::Update(AppState& currentState) {
     if (clearBtn.Update()) rbt.ClearTree();
     if (undoBtn.Update()) rbt.Undo();
     if (redoBtn.Update()) rbt.Redo();
+    if (delBtn.Update() && !inputBox.GetText().empty()) { rbt.Delete(std::stoi(inputBox.GetText()), true); inputBox.Clear(); }
+    if (searchBtn.Update() && !inputBox.GetText().empty()) { 
+        rbt.Search(std::stoi(inputBox.GetText())); 
+        inputBox.Clear(); 
+    }
 
     if (initBtn.Update()) {
         std::string arrStr = arrayInput.GetText();

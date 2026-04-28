@@ -27,6 +27,8 @@ private:
     Button prevBtn;
     Button nextBtn;
 
+    Button undoBtn;
+    Button redoBtn;
     Trie trie; 
 
 public:

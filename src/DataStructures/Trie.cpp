@@ -1,6 +1,6 @@
 #include "DataStructures/Trie.h"
 #include <ctype.h>
-#include <algorithm> // Thư viện <algorithm> để dùng std::min toán học chuẩn
+#include <algorithm> 
 
 Trie::Trie() {
     root = new TrieNode();
@@ -10,6 +10,8 @@ Trie::Trie() {
     isStepByStep = false;
     currentNodeHighlight = nullptr;
     currentSuccessNode = nullptr;
+    historyIndex = -1; 
+    SaveState();
 }
 
 // ==========================================
@@ -83,8 +85,8 @@ void Trie::TakeSnapshot(int activeLine, std::vector<std::string> code) {
     TrieAnimationStep step;
     step.activeCodeLine = activeLine;
     step.codeText = code;
+    step.currentOperation = currentOpText; // Đẩy text Operation vào frame
     
-    // ĐÃ SỬA: Đẩy Root xuống y = 300.0f giống với RBTree
     float startX = 0.0f; 
     float startY = 300.0f; 
     float gap = 120.0f; 
@@ -98,9 +100,11 @@ void Trie::TakeSnapshot(int activeLine, std::vector<std::string> code) {
 // TÍNH NĂNG: INSERT (THÊM TỪ)
 // ==========================================
 void Trie::Insert(std::string word, bool clearSteps) {
-    
-    steps.clear();
-    currentStep = 0;
+    if (clearSteps) {
+        steps.clear();
+        currentStep = 0;
+    }
+    currentOpText = "Inserting: " + word;
     currentNodeHighlight = nullptr;
     currentSuccessNode = nullptr;
 
@@ -141,6 +145,8 @@ void Trie::Insert(std::string word, bool clearSteps) {
     currentSuccessNode = curr;
     currentNodeHighlight = nullptr;
     TakeSnapshot(6, code); 
+    
+    if (clearSteps) SaveState(); // Chỉ lưu nếu Insert độc lập
 }
 
 void Trie::InitFromArray(std::vector<std::string> arr) {
@@ -150,23 +156,19 @@ void Trie::InitFromArray(std::vector<std::string> arr) {
     currentNodeHighlight = nullptr; 
     currentSuccessNode = nullptr;
     
-    // 1. Chạy vòng lặp chèn toàn bộ các từ vào cây
-    // (Lúc này mảng steps sẽ bị nhét đầy các frame animation)
     for (const std::string& w : arr) {
         Insert(w, false); 
     }
     
-    // ==================================================
-    // 2. ÉP HIỂN THỊ NGUYÊN CÂY (FORCE STATIC VIEW)
-    // ==================================================
-    steps.clear(); // Xóa sạch toàn bộ animation thừa vừa tạo ra
+    steps.clear(); 
     currentStep = 0;
-    currentOpText = ""; // Xóa chữ "Inserting..."
+    currentOpText = ""; 
     currentNodeHighlight = nullptr; 
     currentSuccessNode = nullptr;
     
-    // Chụp lại đúng 1 frame duy nhất chứa kết quả cuối cùng của toàn bộ cây
     TakeSnapshot(0, {"Trie Initialized with " + std::to_string(arr.size()) + " words."});
+    
+    SaveState(); // Lưu trạng thái tổng
 }
 
 // ==========================================
@@ -175,6 +177,7 @@ void Trie::InitFromArray(std::vector<std::string> arr) {
 void Trie::Search(std::string word) {
     steps.clear();
     currentStep = 0;
+    currentOpText = "Searching: " + word;
     currentNodeHighlight = nullptr;
     currentSuccessNode = nullptr;
 
@@ -200,8 +203,10 @@ void Trie::Search(std::string word) {
 
         if (curr->children[index] == nullptr) {
             TakeSnapshot(2, code);
-            TakeSnapshot(3, code); // return false
+            TakeSnapshot(3, code); 
             currentNodeHighlight = nullptr;
+            currentOpText = "Not Found: " + word; // Cập nhật text UI
+            TakeSnapshot(3, code); 
             return; 
         }
         
@@ -213,9 +218,14 @@ void Trie::Search(std::string word) {
     TakeSnapshot(6, code);
     if (curr->isEndOfWord) {
         currentSuccessNode = curr; 
-    } 
+        currentOpText = "Found: " + word;
+    } else {
+        currentOpText = "Not Found: " + word;
+    }
     currentNodeHighlight = nullptr;
     TakeSnapshot(6, code);
+    
+    // Hàm Search KHÔNG gọi SaveState()
 }
 
 // ==========================================
@@ -250,7 +260,7 @@ bool Trie::DeleteHelper(TrieNode* curr, std::string word, int depth, std::vector
         for (int i = 0; i < 26; i++) {
             if (curr->children[i]) return false; 
         }
-        if (curr == root) return false; // Không bao giờ xóa Root
+        if (curr == root) return false; 
         return true; 
     }
     return false;
@@ -259,6 +269,7 @@ bool Trie::DeleteHelper(TrieNode* curr, std::string word, int depth, std::vector
 void Trie::Delete(std::string word) {
     steps.clear();
     currentStep = 0;
+    currentOpText = "Deleting: " + word;
     currentNodeHighlight = nullptr;
     currentSuccessNode = nullptr;
 
@@ -281,12 +292,34 @@ void Trie::Delete(std::string word) {
     
     currentNodeHighlight = nullptr; 
     TakeSnapshot(8, code);
+    
+    SaveState(); // Lưu trạng thái sau khi xóa
 }
 
-void ClearTrieMemory(TrieNode* node) {
-    if (!node) return;
+// ==========================================
+// BỘ NHỚ VÀ LỊCH SỬ (UNDO / REDO)
+// ==========================================
+TrieNode* Trie::CloneTrie(TrieNode* node) {
+    if (node == nullptr) return nullptr;
+    
+    TrieNode* newNode = new TrieNode();
+    newNode->isEndOfWord = node->isEndOfWord;
+    
     for (int i = 0; i < 26; i++) {
-        if (node->children[i]) ClearTrieMemory(node->children[i]);
+        if (node->children[i] != nullptr) {
+            newNode->children[i] = CloneTrie(node->children[i]);
+        }
+    }
+    return newNode;
+}
+
+void Trie::ClearTrieMemory(TrieNode* node) {
+    if (node == nullptr) return;
+    
+    for (int i = 0; i < 26; i++) {
+        if (node->children[i] != nullptr) {
+            ClearTrieMemory(node->children[i]);
+        }
     }
     delete node;
 }
@@ -299,17 +332,57 @@ void Trie::ClearList() {
     timer = 0.0f;
     currentNodeHighlight = nullptr;
     currentSuccessNode = nullptr;
-}
+    history.clear();
+    historyIndex = -1;
+    SaveState();
+}  
 
 void Trie::InitRandom() {
     ClearList();
+}
+
+void Trie::ForceStaticView() {
+    steps.clear(); 
+    currentStep = 0; 
+    currentOpText = ""; 
+    std::vector<std::string> idleCode = {"Trie is idle."};
+    TakeSnapshot(0, idleCode);
+}
+
+void Trie::SaveState() {
+    if (historyIndex < (int)history.size() - 1) {
+        for (int i = historyIndex + 1; i < history.size(); i++) {
+            ClearTrieMemory(history[i]);
+        }
+        history.erase(history.begin() + historyIndex + 1, history.end());
+    }
+    history.push_back(CloneTrie(root));
+    historyIndex++;
+}
+
+void Trie::Undo() {
+    if (historyIndex > 0) {
+        historyIndex--;
+        ClearTrieMemory(root); 
+        root = CloneTrie(history[historyIndex]); 
+        ForceStaticView(); 
+    }
+}
+
+void Trie::Redo() {
+    if (historyIndex < (int)history.size() - 1) {
+        historyIndex++;
+        ClearTrieMemory(root);
+        root = CloneTrie(history[historyIndex]);
+        ForceStaticView();
+    }
 }
 
 // ==========================================
 // ĐIỀU KHIỂN & VẼ
 // ==========================================
 void Trie::Update() {
-    if (steps.empty() || currentStep >= steps.size() - 1) return;
+    if (steps.empty() || currentStep >= steps.size() - 1) { currentOpText = ""; return; }
     if (!isStepByStep) {
         timer += GetFrameTime() * speedMultiplier;
         if (timer >= 1.0f) { timer = 0.0f; currentStep++; }
@@ -328,9 +401,6 @@ void Trie::Draw(Theme theme, Font uiFont, Font monoFont) {
     if (steps.empty()) return;
     TrieAnimationStep& step = steps[currentStep];
 
-    // ==========================================
-    // THUẬT TOÁN AUTO-ZOOM (ĐỒNG BỘ RB TREE)
-    // ==========================================
     float minX = 0.0f, maxX = 0.0f, minY = 300.0f, maxY = 300.0f; 
     if (!step.nodes.empty()) {
         minX = step.nodes[0].x;
@@ -348,17 +418,17 @@ void Trie::Draw(Theme theme, Font uiFont, Font monoFont) {
     float treeW = (maxX - minX) + 150.0f; 
     float treeH = (maxY - minY) + 150.0f; 
     float availableW = GetScreenWidth() - 450.0f; 
-    float availableH = GetScreenHeight() - 350.0f; // Đã sửa thành -350.0f để căn giống RBTree
+    float availableH = GetScreenHeight() - 350.0f; 
 
     float zoomX = availableW / (treeW > 0 ? treeW : 1.0f);
     float zoomY = availableH / (treeH > 0 ? treeH : 1.0f);
     
     float targetZoom = std::min(zoomX, zoomY);
-    if (targetZoom > 2.0f) targetZoom = 2.0f; // Giới hạn phóng to như RBTree
-    if (targetZoom < 0.3f) targetZoom = 0.3f; // Giới hạn thu nhỏ như RBTree
+    if (targetZoom > 2.0f) targetZoom = 2.0f; 
+    if (targetZoom < 0.3f) targetZoom = 0.3f; 
 
     Camera2D camera = { 0 };
-    camera.target = { (minX + maxX) / 2.0f, 300.0f }; // Căn giữa màn theo root Y = 300
+    camera.target = { (minX + maxX) / 2.0f, 300.0f }; 
     camera.offset = { availableW / 2.0f + 20.0f, 320.0f }; 
     camera.rotation = 0.0f;
     camera.zoom = targetZoom;
@@ -409,6 +479,17 @@ void Trie::Draw(Theme theme, Font uiFont, Font monoFont) {
     }
 
     EndMode2D(); 
+
+    // UI BOX HIỂN THỊ CURRENT OPERATION
+    if (!step.currentOperation.empty()) {
+        float boxW = MeasureTextEx(uiFont, step.currentOperation.c_str(), 28, 1.0f).x + 40.0f;
+        float boxH = 50.0f;
+        float boxX = GetScreenWidth() / 2.0f - boxW / 2.0f;
+        float boxY = 190.0f;
+        DrawRectangleRounded({boxX, boxY, boxW, boxH}, 0.5f, 10, Fade(theme.btnGradStart, 0.9f));
+        DrawRectangleRoundedLines({boxX, boxY, boxW, boxH}, 0.5f, 10, theme.nodeHighlight);
+        DrawTextEx(uiFont, step.currentOperation.c_str(), {boxX + 20.0f, boxY + 11.0f}, 28, 1.0f, WHITE);
+    }
 
     if (!step.codeText.empty()) {
         float panelW = 420.0f;

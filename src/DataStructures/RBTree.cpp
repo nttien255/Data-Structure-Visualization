@@ -189,6 +189,58 @@ void RBTree::Insert(int key, bool clearSteps) {
     if (clearSteps) SaveState();
 }
 
+void RBTree::Search(int key, bool clearSteps) {
+    if (clearSteps) { steps.clear(); currentStep = 0; }
+    currentOpText = "Searching for: " + std::to_string(key);
+
+    // Bảng Pseudo-code hiển thị trên UI
+    std::vector<std::string> code = {
+        "Search(node, key):",
+        "  if node == TNULL: return NOT FOUND",
+        "  if key == node.data: return FOUND",
+        "  if key < node.data:",
+        "    go left",
+        "  else:",
+        "    go right"
+    };
+
+    RBNode* x = root;
+    while (x != TNULL) {
+        currentNodeHighlight = x; 
+        TakeSnapshot(0, code); // Đang đứng ở node hiện tại
+
+        if (key == x->data) {
+            // Tìm thấy
+            TakeSnapshot(2, code); 
+            currentOpText = "Found: " + std::to_string(key);
+            TakeSnapshot(2, code); // Chụp thêm 1 frame để update text trên UI
+            
+            currentNodeHighlight = nullptr; // Reset highlight
+            if (clearSteps) SaveState();
+            return;
+        }
+
+        if (key < x->data) {
+            // Rẽ trái
+            TakeSnapshot(3, code); 
+            TakeSnapshot(4, code); 
+            x = x->left;
+        } else {
+            // Rẽ phải
+            TakeSnapshot(5, code); 
+            TakeSnapshot(6, code); 
+            x = x->right;
+        }
+    }
+
+    currentNodeHighlight = nullptr;
+    TakeSnapshot(1, code); 
+    currentOpText = "Not Found: " + std::to_string(key);
+    TakeSnapshot(1, code);
+
+    if (clearSteps) SaveState();
+}
+
 void RBTree::InitFromArray(std::vector<int> arr) {
     ClearTreeMemory(root); root = TNULL; history.clear(); historyIndex = -1;
     steps.clear(); currentStep = 0;
@@ -204,6 +256,178 @@ void RBTree::InitRandom(int count) {
     InitFromArray(arr);
 }
 
+// 1. Hàm tìm node nhỏ nhất (Trái cùng)
+RBNode* RBTree::Minimum(RBNode* node) {
+    while (node->left != TNULL) {
+        node = node->left;
+    }
+    return node;
+}
+
+// 2. Hàm nối/ghép nhánh cây
+void RBTree::Transplant(RBNode* u, RBNode* v) {
+    if (u->parent == nullptr) {
+        root = v;
+    } else if (u == u->parent->left) {
+        u->parent->left = v;
+    } else {
+        u->parent->right = v;
+    }
+    v->parent = u->parent; 
+}
+
+// 3. Hàm cân bằng lại cây sau khi xóa (Xử lý 4 trường hợp kinh điển)
+void RBTree::DeleteFixup(RBNode* x, std::vector<std::string>& code) {
+    RBNode* s;
+    while (x != root && x->color == RBColor::RB_BLACK) {
+        if (x == x->parent->left) {
+            s = x->parent->right;
+            if (s->color == RBColor::RB_RED) {
+                s->color = RBColor::RB_BLACK;
+                x->parent->color = RBColor::RB_RED;
+                LeftRotate(x->parent, code);
+                s = x->parent->right;
+            }
+            if (s->left->color == RBColor::RB_BLACK && s->right->color == RBColor::RB_BLACK) {
+                s->color = RBColor::RB_RED;
+                x = x->parent;
+                currentNodeHighlight = x;
+                TakeSnapshot(5, code);
+            } else {
+                if (s->right->color == RBColor::RB_BLACK) {
+                    s->left->color = RBColor::RB_BLACK;
+                    s->color = RBColor::RB_RED;
+                    RightRotate(s, code);
+                    s = x->parent->right;
+                }
+                s->color = x->parent->color;
+                x->parent->color = RBColor::RB_BLACK;
+                s->right->color = RBColor::RB_BLACK;
+                LeftRotate(x->parent, code);
+                x = root;
+            }
+        } else {
+            // Trường hợp đối xứng (x là con phải)
+            s = x->parent->left;
+            if (s->color == RBColor::RB_RED) {
+                s->color = RBColor::RB_BLACK;
+                x->parent->color = RBColor::RB_RED;
+                RightRotate(x->parent, code);
+                s = x->parent->left;
+            }
+            if (s->right->color == RBColor::RB_BLACK && s->left->color == RBColor::RB_BLACK) {
+                s->color = RBColor::RB_RED;
+                x = x->parent;
+                currentNodeHighlight = x;
+                TakeSnapshot(5, code);
+            } else {
+                if (s->left->color == RBColor::RB_BLACK) {
+                    s->right->color = RBColor::RB_BLACK;
+                    s->color = RBColor::RB_RED;
+                    LeftRotate(s, code);
+                    s = x->parent->left;
+                }
+                s->color = x->parent->color;
+                x->parent->color = RBColor::RB_BLACK;
+                s->left->color = RBColor::RB_BLACK;
+                RightRotate(x->parent, code);
+                x = root;
+            }
+        }
+    }
+    x->color = RBColor::RB_BLACK;
+    currentNodeHighlight = nullptr;
+    TakeSnapshot(6, code);
+}
+
+// 4. Hàm Delete Chính
+void RBTree::Delete(int key, bool clearSteps) {
+    if (clearSteps) { steps.clear(); currentStep = 0; }
+    currentOpText = "Deleting: " + std::to_string(key);
+
+    // Kịch bản pseudo-code hiển thị lên màn hình
+    std::vector<std::string> code = {
+        "Delete(node, key):",
+        "  1. Find node to delete",
+        "  2. If 2 children: find successor",
+        "  3. Transplant subtrees",
+        "  4. If original color == BLACK:",
+        "  5.   DeleteFixup(x) // Rebalance",
+        "  6. Finish Deletion"
+    };
+
+    // Bước 1: Tìm node cần xóa
+    RBNode* z = TNULL;
+    RBNode* curr = root;
+    while (curr != TNULL) {
+        currentNodeHighlight = curr;
+        TakeSnapshot(1, code);
+        if (curr->data == key) {
+            z = curr;
+            break;
+        }
+        if (key < curr->data) curr = curr->left;
+        else curr = curr->right;
+    }
+
+    if (z == TNULL) {
+        currentOpText = "Key " + std::to_string(key) + " not found!";
+        currentNodeHighlight = nullptr;
+        TakeSnapshot(1, code);
+        if (clearSteps) SaveState();
+        return;
+    }
+
+    // Bước 2: Logic xóa chuẩn BST
+    RBNode* x;
+    RBNode* y = z; // y là node bị tách ra khỏi cây hoặc bị di chuyển
+    RBColor y_original_color = y->color;
+
+    if (z->left == TNULL) {
+        x = z->right;
+        Transplant(z, z->right);
+        TakeSnapshot(3, code);
+    } else if (z->right == TNULL) {
+        x = z->left;
+        Transplant(z, z->left);
+        TakeSnapshot(3, code);
+    } else {
+        // Node có 2 con: Tìm node kế vị (nhỏ nhất bên nhánh phải)
+        y = Minimum(z->right);
+        y_original_color = y->color;
+        x = y->right;
+        currentNodeHighlight = y; 
+        TakeSnapshot(2, code);
+
+        if (y->parent == z) {
+            x->parent = y;
+        } else {
+            Transplant(y, y->right);
+            y->right = z->right;
+            y->right->parent = y;
+        }
+
+        Transplant(z, y);
+        y->left = z->left;
+        y->left->parent = y;
+        y->color = z->color;
+        TakeSnapshot(3, code);
+    }
+
+    delete z; // Giải phóng bộ nhớ node bị xóa
+
+    // Bước 3: Nếu node vừa làm mất đi (y_original_color) là màu ĐEN, 
+    // chiều cao đen của cây đã bị vi phạm, cần gọi hàm Fixup.
+    if (y_original_color == RBColor::RB_BLACK) {
+        TakeSnapshot(4, code);
+        DeleteFixup(x, code);
+    }
+
+    currentNodeHighlight = nullptr;
+    currentOpText = "Deleted: " + std::to_string(key);
+    TakeSnapshot(6, code);
+    if (clearSteps) SaveState();
+}
 void RBTree::Update() {
     if (steps.empty() || currentStep >= steps.size() - 1) { currentOpText = ""; return; }
     if (!isStepByStep) {
