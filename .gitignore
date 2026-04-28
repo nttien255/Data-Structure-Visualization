@@ -2,11 +2,10 @@
 build/
 bin/
 out/
-*.exe
 *.o
 *.obj
 *.out
-
+*.pdf
 # Bỏ qua các file cấu hình của Editor/IDE (VS Code, Visual Studio, CLion)
 .vscode/
 .vs/
