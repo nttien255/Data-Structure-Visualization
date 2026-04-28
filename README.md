@@ -7,7 +7,6 @@ You can download and run this project on your local machine using one of the two
 ### Prerequisites
 Before running the project, ensure you have the following installed:
 * A C++ Compiler (e.g., GCC/MinGW or MSVC)
-* [Raylib](https://www.raylib.com/) (Configured for your development environment)
 
 ### Method 1: Clone via Git (Recommended)
 If you have Git installed, open your terminal or command prompt and run:
